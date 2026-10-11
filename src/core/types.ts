@@ -1,0 +1,69 @@
+// Text fields (prompt, solution steps, summaries) are plain text with inline
+// TeX in $...$ and display TeX in $$...$$.
+
+export type Answer =
+  /** Expression in `vars`, compared numerically at random points. */
+  | { kind: 'expr'; expected: string; vars: string[]; upToConstant?: boolean; display?: string }
+  /** A single number; `expected` is a mathjs expression like "3/8" or "sqrt(2)". */
+  | { kind: 'number'; expected: string; display?: string }
+  /** Comma-separated numbers, order ignored (e.g. eigenvalues, roots). */
+  | { kind: 'list'; expected: string[]; display?: string }
+  /** Matrix (or column vector) entered in a grid. */
+  | { kind: 'matrix'; expected: string[][] }
+  /** Column vector, any non-zero multiple of `expected` is accepted. */
+  | { kind: 'direction'; expected: string[] }
+  | { kind: 'choice'; options: string[]; correct: number };
+
+export interface Problem {
+  prompt: string;
+  answer: Answer;
+  /** Worked solution, one step per entry. */
+  solution: string[];
+  /** Optional input hint shown under the answer box, e.g. "Enter a fraction". */
+  inputHint?: string;
+  /** Independent verification of the generator, used by tests only. */
+  selfCheck?: () => boolean;
+}
+
+export type Rng = {
+  /** Float in [0, 1). */
+  next(): number;
+  /** Integer in [lo, hi], inclusive. */
+  int(lo: number, hi: number): number;
+  /** Non-zero integer in [lo, hi]. */
+  nz(lo: number, hi: number): number;
+  pick<T>(xs: readonly T[]): T;
+  sign(): 1 | -1;
+  shuffle<T>(xs: T[]): T[];
+};
+
+export interface Level {
+  /** Short description of what this level adds, e.g. "repeated parts". */
+  name: string;
+  generate(rng: Rng): Problem;
+}
+
+export interface Resource {
+  kind: 'video' | 'article' | 'book' | 'interactive';
+  title: string;
+  url: string;
+  note?: string;
+}
+
+export interface Skill {
+  id: string;
+  subject: SubjectId;
+  topic: string;
+  name: string;
+  prereqs: string[];
+  levels: Level[];
+  learn: { summary: string; resources: Resource[] };
+}
+
+export type SubjectId = 'calculus' | 'linalg';
+
+export interface Subject {
+  id: SubjectId;
+  name: string;
+  skills: Skill[];
+}
