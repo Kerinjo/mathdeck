@@ -2,7 +2,7 @@ import type { Chapter, Skill, Subject } from '../core/types';
 import { calculus1Chapters } from './calc1';
 import { calculus2Chapters } from './calc2';
 import { multivariableChapters } from './calc3';
-import { discreteChapters } from './discrete';
+import { discreteChapters } from './discrete-more';
 import { graphChapters } from './graphs-more';
 import { linalgChapters } from './linalg-more';
 import { logicChapters } from './logic';
