@@ -1,53 +1,15 @@
+// The original Calculus sections. calc1.ts, calc2.ts and calc3.ts arrange them (widened) into three subjects.
 import { Q } from '../core/frac';
 import { coef, mono, poly, signed, st, sum, t } from '../core/fmt';
-import type { Chapter, Problem, Resource, Skill } from '../core/types';
-import { epsilonDelta, inverseDerivatives, lagrange, optimization, powerSums, trigIntegrals } from './calculus-deeper';
+import type { Skill } from '../core/types';
 import { distinct, fact, int, lin, P } from './helpers';
 import { integrate, integrate2, isDerivative, near, value } from './verify';
 
-const paul = (path: string, title: string): Resource => ({
-  kind: 'article',
-  title: `Paul's Online Notes: ${title}`,
-  url: `https://tutorial.math.lamar.edu/Classes/${path}`,
-});
-const openstax = (vol: 1 | 2 | 3, slug: string, title: string): Resource => ({
-  kind: 'book',
-  title: `OpenStax Calculus Vol. ${vol}: ${title}`,
-  url: `https://openstax.org/books/calculus-volume-${vol}/pages/${slug}`,
-});
-const tb1b = (slug: string, title: string): Resource => ({
-  kind: 'video',
-  title: `3Blue1Brown: ${title}`,
-  url: `https://www.3blue1brown.com/lessons/${slug}`,
-});
-
-const expr = (expected: string, display?: string, vars = ['x']): Problem['answer'] => ({
-  kind: 'expr',
-  expected,
-  vars,
-  display,
-});
-const anti = (expected: string, display?: string): Problem['answer'] => ({
-  kind: 'expr',
-  expected,
-  vars: ['x'],
-  upToConstant: true,
-  display: display && `${display} + C`,
-});
-const num = (q: Q | string, display?: string): Problem['answer'] => ({
-  kind: 'number',
-  expected: q.toString(),
-  display: display ?? (q instanceof Q ? q.tex() : undefined),
-});
-
-/** A limit or a derivative's value: only a short simplified answer, so the function can't be pasted in. */
-const exact = (q: Q | string, display?: string): Problem['answer'] => ({ ...num(q, display), simple: true } as Problem['answer']);
-
-const diff = (f: string) => `Differentiate $f(x) = ${f}$.`;
+import { anti, diff, exact, expr, num, openstax, paul, tb1b } from './calc-helpers';
 
 // ---------------------------------------------------------------------------
 
-const limits: Skill = {
+export const limits: Skill = {
   id: 'calc.limits',
   name: 'Evaluating limits',
   prereqs: [],
@@ -135,7 +97,7 @@ const limits: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const power: Skill = {
+export const power: Skill = {
   id: 'calc.power',
   name: 'Power rule',
   prereqs: [],
@@ -214,7 +176,7 @@ const power: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const product: Skill = {
+export const product: Skill = {
   id: 'calc.product',
   name: 'Product and quotient rules',
   prereqs: ['calc.power'],
@@ -303,7 +265,7 @@ const product: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const chain: Skill = {
+export const chain: Skill = {
   id: 'calc.chain',
   name: 'Chain rule',
   prereqs: ['calc.power'],
@@ -462,7 +424,7 @@ const chain: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const implicit: Skill = {
+export const implicit: Skill = {
   id: 'calc.implicit',
   name: 'Implicit differentiation',
   prereqs: ['calc.chain'],
@@ -548,7 +510,7 @@ const implicit: Skill = {
 /** f(x) = s(2x³ − 3(p+q)x² + 6pqx), so f'(x) = 6s(x−p)(x−q). */
 const cubicWithRoots = (p: number, q: number, s: 1 | -1) => [2 * s, -3 * (p + q) * s, 6 * p * q * s, 0];
 
-const extrema: Skill = {
+export const extrema: Skill = {
   id: 'calc.extrema',
   name: 'Critical points and extrema',
   prereqs: ['calc.power'],
@@ -631,7 +593,7 @@ const extrema: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const lhopital: Skill = {
+export const lhopital: Skill = {
   id: 'calc.lhopital',
   name: "L'Hôpital's rule",
   prereqs: ['calc.limits', 'calc.chain'],
@@ -723,7 +685,7 @@ const lhopital: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const antideriv: Skill = {
+export const antideriv: Skill = {
   id: 'calc.antideriv',
   name: 'Basic antiderivatives',
   prereqs: ['calc.power'],
@@ -808,7 +770,7 @@ const antideriv: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const definite: Skill = {
+export const definite: Skill = {
   id: 'calc.definite',
   name: 'Definite integrals and area',
   prereqs: ['calc.antideriv'],
@@ -915,7 +877,7 @@ const definite: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const usub: Skill = {
+export const usub: Skill = {
   id: 'calc.usub',
   name: 'Substitution',
   prereqs: ['calc.antideriv', 'calc.chain'],
@@ -978,7 +940,7 @@ const usub: Skill = {
           const n = r.int(1, 4);
           const F = `log(x)^${n + 1}/${n + 1}`;
           return {
-            prompt: `Find $${int(`\\frac{(\\ln x)^{${n}}}{x}`)}$.`,
+            prompt: `Find $${int(n === 1 ? '\\frac{\\ln x}{x}' : `\\frac{(\\ln x)^{${n}}}{x}`)}$.`,
             answer: anti(F, `\\dfrac{(\\ln x)^{${n + 1}}}{${n + 1}}`),
             solution: [`Let $u = \\ln x$, $du = \\frac{dx}{x}$.`, `$\\int u^{${n}}du = \\dfrac{(\\ln x)^{${n + 1}}}{${n + 1}}$`],
             selfCheck: () => isDerivative(F, `log(x)^${n}/x`),
@@ -1034,7 +996,7 @@ const usub: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const parts: Skill = {
+export const parts: Skill = {
   id: 'calc.parts',
   name: 'Integration by parts',
   prereqs: ['calc.antideriv', 'calc.product'],
@@ -1170,7 +1132,7 @@ const parts: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const pfrac: Skill = {
+export const pfrac: Skill = {
   id: 'calc.pfrac',
   name: 'Partial fractions',
   prereqs: ['calc.usub'],
@@ -1249,7 +1211,7 @@ const pfrac: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const series: Skill = {
+export const series: Skill = {
   id: 'calc.series',
   name: 'Infinite series',
   prereqs: ['calc.limits'],
@@ -1344,7 +1306,7 @@ const series: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const taylor: Skill = {
+export const taylor: Skill = {
   id: 'calc.taylor',
   name: 'Taylor and power series',
   prereqs: ['calc.chain', 'calc.series'],
@@ -1447,7 +1409,7 @@ const taylor: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const partial: Skill = {
+export const partial: Skill = {
   id: 'calc.partial',
   name: 'Partial derivatives and gradients',
   prereqs: ['calc.chain'],
@@ -1534,7 +1496,7 @@ const partial: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const double: Skill = {
+export const double: Skill = {
   id: 'calc.double',
   name: 'Double integrals',
   prereqs: ['calc.definite', 'calc.partial'],
@@ -1613,9 +1575,8 @@ const double: Skill = {
 };
 
 // ---------------------------------------------------------------------------
-// Going deeper
 
-const improper: Skill = {
+export const improper: Skill = {
   id: 'calc.improper',
   name: 'Improper integrals',
   prereqs: ['calc.definite', 'calc.limits'],
@@ -1699,62 +1660,3 @@ const improper: Skill = {
     ],
   },
 };
-
-// ---------------------------------------------------------------------------
-
-export const calculusChapters: Chapter[] = [
-  {
-    id: 'calc.ch.limits',
-    title: 'Limits',
-    about: 'What value a function approaches as $x$ approaches a point or infinity, and how to compute it when plugging in fails.',
-    why: 'Derivatives, integrals and series are all defined as limits. Limits at infinity are also how you compare growth rates, which is exactly Big-O reasoning.',
-    resources: [tb1b('limits', 'Limits, L’Hôpital’s rule, and epsilon delta definitions'), paul('CalcI/LimitsIntro.aspx', 'Limits (chapter intro)'), openstax(1, '2-2-the-limit-of-a-function', 'The Limit of a Function')],
-    skills: [limits],
-    deeper: [epsilonDelta],
-  },
-  {
-    id: 'calc.ch.derivatives',
-    title: 'Derivatives',
-    about: 'The derivative as instantaneous rate of change, and the rules that let you differentiate anything built from elementary functions.',
-    why: 'Optimisation, physics, and machine learning (gradient descent and backpropagation are the chain rule applied at scale).',
-    resources: [tb1b('derivatives', 'The paradox of the derivative'), tb1b('chain-rule-and-product-rule', 'Visualizing the chain rule and product rule'), openstax(1, '3-1-defining-the-derivative', 'Defining the Derivative')],
-    skills: [power, product, chain, implicit],
-    deeper: [inverseDerivatives],
-  },
-  {
-    id: 'calc.ch.applications',
-    title: 'Applications of derivatives',
-    about: 'Using derivatives to find maxima and minima, and to evaluate tricky limits with L’Hôpital’s rule.',
-    why: 'Finding the best value of something is the most common use of calculus in practice.',
-    resources: [paul('CalcI/DerivAppsIntro.aspx', 'Applications of Derivatives (chapter intro)'), openstax(1, '4-3-maxima-and-minima', 'Maxima and Minima')],
-    skills: [extrema, lhopital],
-    deeper: [optimization],
-  },
-  {
-    id: 'calc.ch.integrals',
-    title: 'Integrals',
-    about: 'Antiderivatives, the fundamental theorem of calculus, and the main techniques: substitution, integration by parts, partial fractions.',
-    why: 'Areas, totals and averages; in probability, every expected value and every density is an integral.',
-    resources: [tb1b('integration', 'Integration and the fundamental theorem of calculus'), openstax(1, '5-3-the-fundamental-theorem-of-calculus', 'The Fundamental Theorem of Calculus'), paul('CalcII/IntTechIntro.aspx', 'Integration Techniques (chapter intro)')],
-    skills: [antideriv, definite, usub, parts, pfrac],
-    deeper: [improper, trigIntegrals],
-  },
-  {
-    id: 'calc.ch.series',
-    title: 'Series',
-    about: 'Infinite sums: when they converge, how to sum them, and how to write functions as power series.',
-    why: 'Taylor series are how computers evaluate $\\sin$, $e^x$ and friends, and they underpin most approximation arguments. Geometric series show up in algorithm analysis.',
-    resources: [tb1b('taylor-series', 'Taylor series'), paul('CalcII/SeriesIntro.aspx', 'Series and Sequences (chapter intro)'), openstax(2, '5-2-infinite-series', 'Infinite Series')],
-    skills: [series, taylor],
-    deeper: [powerSums],
-  },
-  {
-    id: 'calc.ch.multivariable',
-    title: 'Multivariable calculus',
-    about: 'Functions of several variables: partial derivatives, gradients, Hessians and double integrals.',
-    why: 'Machine learning lives here: a loss function has thousands of variables and the gradient tells you which way to move.',
-    resources: [paul('CalcIII/PartialDerivsIntro.aspx', 'Partial Derivatives (chapter intro)'), openstax(3, '4-3-partial-derivatives', 'Partial Derivatives'), { kind: 'video', title: 'Khan Academy: Multivariable calculus', url: 'https://www.khanacademy.org/math/multivariable-calculus' }],
-    skills: [partial, double],
-    deeper: [lagrange],
-  },
-];

@@ -1,5 +1,7 @@
 import type { Chapter, Skill, Subject } from '../core/types';
-import { calculusChapters } from './calculus';
+import { calculus1Chapters } from './calc1';
+import { calculus2Chapters } from './calc2';
+import { multivariableChapters } from './calc3';
 import { discreteChapters } from './discrete';
 import { graphChapters } from './graphs';
 import { linalgChapters } from './linalg';
@@ -9,7 +11,9 @@ import { probabilityChapters } from './prob';
 import { proofsChapters } from './proofs';
 
 export const SUBJECTS: Subject[] = [
-  { id: 'calculus', name: 'Calculus', blurb: 'Limits, derivatives, integrals, series', requires: [], chapters: calculusChapters },
+  { id: 'calculus', name: 'Calculus I', blurb: 'Limits, continuity, derivatives and their applications', requires: [], chapters: calculus1Chapters },
+  { id: 'calculus2', name: 'Calculus II', blurb: 'Integration, its applications, series, differential equations', requires: ['calculus'], chapters: calculus2Chapters },
+  { id: 'multivar', name: 'Multivariable Calculus', blurb: 'Partial derivatives, multiple integrals, vector calculus', requires: ['calculus2'], chapters: multivariableChapters },
   { id: 'linalg', name: 'Linear Algebra', blurb: 'Vectors, matrices, eigenvalues', requires: [], chapters: linalgChapters },
   { id: 'logic', name: 'Logic', blurb: 'Connectives, equivalence, quantifiers, arguments', requires: [], chapters: logicChapters },
   { id: 'proofs', name: 'Proofs', blurb: 'Direct, contradiction, induction, sets and functions', requires: ['logic'], chapters: proofsChapters },

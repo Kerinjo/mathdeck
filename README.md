@@ -96,13 +96,15 @@ difference quotients); and whole-number answers must match exactly.
 
 ## Content
 
-Eight subjects. The Subjects page shows how they build on each other: Logic → Proofs → Discrete Math → Graph Theory
-and Number Theory; Calculus, Linear Algebra and Probability & Statistics stand on their own (probability borrows only a
-little counting and a few integrals, noted where they come up).
+Ten subjects. The Subjects page shows how they build on each other: Calculus I → Calculus II → Multivariable Calculus;
+Logic → Proofs → Discrete Math → Graph Theory and Number Theory; Linear Algebra and Probability & Statistics stand on
+their own (probability borrows only a little counting and a few integrals, noted where they come up).
 
 | Subject | Chapters | Going deeper (optional) |
 |---|---|---|
-| **Calculus** | Limits · Derivatives · Applications of derivatives · Integrals · Series · Multivariable | ε–δ · inverse functions and logarithmic differentiation · related rates and optimisation · improper integrals · trigonometric integrals · summing power series · directional derivatives and Lagrange multipliers |
+| **Calculus I** | Limits and continuity · Derivatives · Applications of derivatives | ε–δ · inverse functions and logarithmic differentiation |
+| **Calculus II** | Integrals · Integration techniques · Applications of integration · Sequences and series · Differential equations | numerical integration · summing power series · second-order linear equations |
+| **Multivariable Calculus** | Partial derivatives · Multiple integrals · Vector calculus | change of variables (Jacobians) |
 | **Linear Algebra** | Vectors · Linear systems · Matrices and linear maps · Determinants · Vector spaces · Eigenvalues · Orthogonality | lines and planes · LU decomposition · areas, volumes and Cramer's rule · change of basis · diagonalization · singular values · projection and orthogonal matrices |
 | **Logic** | Propositions and connectives · Equivalence and normal forms · Quantifiers · Arguments | satisfiability · translating English into logic |
 | **Proofs** | Direct proof · Contrapositive and contradiction · Induction · Sets and functions (self-rated, with model proofs) | pigeonhole proofs · structural induction |
