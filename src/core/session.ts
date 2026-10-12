@@ -1,4 +1,4 @@
-import { servedLevel, type SkillState } from './scheduler';
+import { servedLevel, solved, type Rating, type SkillState } from './scheduler';
 
 /**
  * A study session inside one chapter or one section. It counts as progress, is saved after
@@ -91,16 +91,19 @@ export function pickNext(
   return done(item(weakest, 'extra'));
 }
 
-/** Record an answer to the current item. Misses outside the frontier get a retry a few problems later. */
+/** Record a rated answer. An "again" outside the frontier gets a retry a few problems later. */
 export function recordAnswer(
   s: SessionState,
-  ok: boolean,
+  rating: Rating,
   newlyCleared: boolean,
   now: number,
 ): SessionState {
   const cur = s.current!;
+  const ok = solved(rating);
   const retries =
-    !ok && cur.kind !== 'frontier' ? [...s.retries, { skillId: cur.skillId, after: s.answered + 1 + RETRY_GAP }] : s.retries;
+    rating === 'again' && cur.kind !== 'frontier'
+      ? [...s.retries, { skillId: cur.skillId, after: s.answered + 1 + RETRY_GAP }]
+      : s.retries;
   return {
     ...s,
     answered: s.answered + 1,

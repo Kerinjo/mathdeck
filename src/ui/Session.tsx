@@ -3,6 +3,7 @@ import { SKILLS } from '../content';
 import { dropSession, recordAnswer, scopeOf, sessionTitle } from '../core/actions';
 import { makeRng } from '../core/rng';
 import { newSession, pickNext, recordAnswer as recordInSession, type SessionState } from '../core/session';
+import type { Rating } from '../core/scheduler';
 import { getData, update, useData } from '../core/store';
 import { Card } from './Card';
 import { describeAnswer } from './common';
@@ -59,7 +60,7 @@ export function Session({ sessionKey, onExit }: { sessionKey: string; onExit(): 
       <div className="card done-card">
         <h2>Session complete</h2>
         <p>
-          {s.right} / {s.answered} correct.
+          {s.right} / {s.answered} solved.
         </p>
         {s.cleared.length > 0 && (
           <p>
@@ -90,17 +91,12 @@ export function Session({ sessionKey, onExit }: { sessionKey: string; onExit(): 
 
   if (!item || !problem) return null;
 
-  const onAnswered = (ok: boolean) => {
+  const onRated = (rating: Rating) => {
     const now = Date.now();
-    const { before, after } = recordAnswer(item.skillId, item.level, ok, now);
+    const { before, after } = recordAnswer(item.skillId, item.level, rating, now);
     const latest = getData().sessions[sessionKey];
-    save(recordInSession(latest, ok, after.cleared && !before.cleared, now));
-    setFeedback(describeAnswer(item.skillId, before, after, ok, now));
-  };
-
-  const onNext = () => {
-    setFeedback(null);
-    proceed(getData().sessions[sessionKey]);
+    setFeedback(describeAnswer(item.skillId, before, after, rating, now));
+    proceed(recordInSession(latest, rating, after.cleared && !before.cleared, now));
   };
 
   return (
@@ -124,9 +120,8 @@ export function Session({ sessionKey, onExit }: { sessionKey: string; onExit(): 
         skill={SKILLS[item.skillId]}
         level={item.level}
         problem={problem}
-        onAnswered={onAnswered}
-        onNext={onNext}
-        feedback={feedback}
+        onRated={onRated}
+        banner={feedback}
       />
     </div>
   );

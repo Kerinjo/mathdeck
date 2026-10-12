@@ -1,6 +1,6 @@
 // Operations shared by the study, review and chapter screens.
 import { CHAPTER_BY_ID, CHAPTER_OF, isDeeper, SKILLS } from '../content';
-import { newState, review, type SkillState } from './scheduler';
+import { newState, review, solved, type Rating, type SkillState } from './scheduler';
 import { getData, update, type Data } from './store';
 
 /** Skills a session key covers, in book order. Deeper sections count only when switched on. */
@@ -14,13 +14,13 @@ export function scopeOf(key: string, d: Data = getData()): string[] {
 /** Skills that take part in reviews: every started main section, plus deeper ones that are switched on. */
 export const isActive = (id: string, d: Data = getData()) => !isDeeper(id) || !!d.deeper[id];
 
-export function recordAnswer(skillId: string, level: number, ok: boolean, now = Date.now()) {
+export function recordAnswer(skillId: string, level: number, rating: Rating, now = Date.now()) {
   const before = getData().states[skillId] ?? newState(now);
-  const after = review(before, SKILLS[skillId], ok, now);
+  const after = review(before, SKILLS[skillId], rating, now);
   update((d) => ({
     ...d,
     states: { ...d.states, [skillId]: after },
-    log: [...d.log, { t: now, skill: skillId, level, ok }],
+    log: [...d.log, { t: now, skill: skillId, level, ok: solved(rating), rating }],
   }));
   return { before, after };
 }

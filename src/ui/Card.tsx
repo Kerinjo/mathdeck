@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { answerTex, check } from '../core/check';
+import type { Rating } from '../core/scheduler';
 import { useData } from '../core/store';
 import type { Problem, Skill } from '../core/types';
 import { CHAPTER_OF, chapterNumber, SKILLS, SUBJECT_OF_CHAPTER } from '../content';
@@ -10,20 +11,59 @@ interface Props {
   skill: Skill;
   level: number;
   problem: Problem;
-  /** Called once with the verdict. */
-  onAnswered(ok: boolean): void;
-  onNext(): void;
-  /** Extra line under the verdict (e.g. "Level up!"). */
-  feedback?: ReactNode;
-  header?: ReactNode;
+  /** Called once, when you rate how it went. The parent records it and moves on. */
+  onRated(rating: Rating): void;
+  /** Message about the previous card (e.g. "Section cleared"), shown above this one. */
+  banner?: ReactNode;
 }
 
-export function Card({ skill, level, problem, onAnswered, onNext, feedback, header }: Props) {
+type Result = { ok: boolean; gaveUp: boolean; self: boolean };
+
+interface Choice {
+  rating: Rating;
+  label: string;
+  hint: string;
+}
+
+/** What you can say about how it went, depending on the outcome. The first default is used for Enter. */
+function choicesFor(r: Result): { choices: Choice[]; def: Rating } {
+  if (r.self)
+    return {
+      choices: [
+        { rating: 'again', label: "Couldn't do it", hint: 'back soon' },
+        { rating: 'hard', label: 'Hard', hint: 'got there, with effort' },
+        { rating: 'good', label: 'Good', hint: 'did it' },
+        { rating: 'easy', label: 'Easy', hint: 'no effort' },
+      ],
+      def: 'good',
+    };
+  if (r.ok)
+    return {
+      choices: [
+        { rating: 'hard', label: 'Hard', hint: 'comes back sooner' },
+        { rating: 'good', label: 'Good', hint: 'normal spacing' },
+        { rating: 'easy', label: 'Easy', hint: 'push it far out' },
+      ],
+      def: 'good',
+    };
+  if (r.gaveUp) return { choices: [{ rating: 'again', label: "Didn't know how", hint: 'back soon' }], def: 'again' };
+  return {
+    choices: [
+      { rating: 'again', label: "Didn't know how", hint: 'back soon' },
+      { rating: 'slip', label: 'Slip — I had the method', hint: 'no penalty' },
+    ],
+    def: 'again',
+  };
+}
+
+export function Card({ skill, level, problem, onRated, banner }: Props) {
+  const self = problem.answer.kind === 'self';
   const [response, setResponse] = useState<ResponseValue>(() => emptyResponse(problem.answer));
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ ok: boolean; gaveUp: boolean } | null>(null);
+  const [result, setResult] = useState<Result | null>(null);
   const [showSolution, setShowSolution] = useState(false);
   const [showLearn, setShowLearn] = useState(false);
+  const [rated, setRated] = useState(false);
   const gradedAt = useRef(0);
 
   const grade = (v: ResponseValue = response) => {
@@ -36,20 +76,38 @@ export function Card({ skill, level, problem, onAnswered, onNext, feedback, head
   };
   const finish = (ok: boolean, gaveUp: boolean) => {
     gradedAt.current = Date.now();
-    setResult({ ok, gaveUp });
-    setShowSolution(!ok);
-    setShowLearn(!ok);
-    onAnswered(ok);
+    setResult({ ok, gaveUp, self });
+    setShowSolution(!ok || self);
+    setShowLearn(!ok && !self);
   };
+  const rate = (r: Rating) => {
+    if (rated) return;
+    setRated(true);
+    onRated(r);
+  };
+
+  const options = result ? choicesFor(result) : null;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const typing = e.target instanceof HTMLInputElement;
-      if (result) {
-        if ((e.key === 'Enter' || e.key === ' ') && !e.repeat && Date.now() - gradedAt.current > 250) {
+      if (result && options) {
+        if (e.repeat || Date.now() - gradedAt.current < 250) return;
+        if (e.key === 'Enter') {
           e.preventDefault();
-          onNext();
+          rate(options.def);
+          return;
         }
+        const n = Number(e.key);
+        if (n >= 1 && n <= options.choices.length) {
+          e.preventDefault();
+          rate(options.choices[n - 1].rating);
+        }
+        return;
+      }
+      if (self && e.key === 'Enter' && !typing) {
+        e.preventDefault();
+        finish(true, false);
         return;
       }
       if (problem.answer.kind === 'choice' && !typing) {
@@ -69,6 +127,7 @@ export function Card({ skill, level, problem, onAnswered, onNext, feedback, head
 
   return (
     <div className="card">
+      {banner && <div className="banner">{banner}</div>}
       <div className="card-head">
         <div className="crumbs">
           {subject.name} <span className="sep">›</span> {chapterNumber(chapter)}. {chapter.title} <span className="sep">›</span>{' '}
@@ -78,79 +137,118 @@ export function Card({ skill, level, problem, onAnswered, onNext, feedback, head
           Level {level + 1}/{skill.levels.length} · {skill.levels[level].name}
         </div>
       </div>
-      {header}
 
       <div className="prompt">
         <Text text={problem.prompt} />
       </div>
 
-      <AnswerInput
-        answer={problem.answer}
-        value={response}
-        onChange={(v) => {
-          setResponse(v);
-          setError(null);
-        }}
-        onSubmit={grade}
-        disabled={!!result}
-        reveal={!!result}
-      />
-      {problem.inputHint && !result && <div className="hint">{problem.inputHint}</div>}
-      {error && <div className="error">{error}</div>}
+      {self ? (
+        !result && <div className="hint">Work it out on paper, then compare with the model proof.</div>
+      ) : (
+        <>
+          <AnswerInput
+            answer={problem.answer}
+            value={response}
+            onChange={(v) => {
+              setResponse(v);
+              setError(null);
+            }}
+            onSubmit={grade}
+            disabled={!!result}
+            reveal={!!result}
+          />
+          {problem.inputHint && !result && <div className="hint">{problem.inputHint}</div>}
+          {error && <div className="error">{error}</div>}
+        </>
+      )}
 
-      {!result ? (
+      {!result && (
         <div className="actions">
           <button className={`ghost intro-btn ${showLearn ? 'active' : ''}`} onClick={() => setShowLearn(!showLearn)}>
             📖 Intro
           </button>
-          <button className="ghost" onClick={() => finish(false, true)}>
-            I don't know
-          </button>
-          {problem.answer.kind !== 'choice' && (
-            <button className="primary" onClick={() => grade()}>
-              Check <kbd>⏎</kbd>
+          {self ? (
+            <button className="primary" onClick={() => finish(true, false)}>
+              Show model proof <kbd>⏎</kbd>
             </button>
+          ) : (
+            <>
+              <button className="ghost" onClick={() => finish(false, true)}>
+                I don't know
+              </button>
+              {problem.answer.kind !== 'choice' && (
+                <button className="primary" onClick={() => grade()}>
+                  Check <kbd>⏎</kbd>
+                </button>
+              )}
+            </>
           )}
         </div>
-      ) : null}
+      )}
       {!result && showLearn && (
         <div className="intro-panel">
           <LearnPanel skill={skill} />
         </div>
       )}
-      {result && (
+
+      {result && options && (
         <>
-          <div className={`verdict ${result.ok ? 'ok' : 'bad'}`}>
-            <div className="verdict-main">
-              <span className="verdict-icon">{result.ok ? '✓' : '✗'}</span>
-              <span>{result.ok ? 'Correct' : result.gaveUp ? 'Here is how it goes' : 'Not quite'}</span>
-              {!result.ok && problem.answer.kind !== 'choice' && (
-                <span className="expected">
-                  Answer: <Math tex={answerTex(problem.answer)} />
-                </span>
-              )}
+          {!self && (
+            <div className={`verdict ${result.ok ? 'ok' : 'bad'}`}>
+              <div className="verdict-main">
+                <span className="verdict-icon">{result.ok ? '✓' : '✗'}</span>
+                <span>{result.ok ? 'Correct' : result.gaveUp ? 'Here is how it goes' : 'Not quite'}</span>
+                {!result.ok && problem.answer.kind !== 'choice' && (
+                  <span className="expected">
+                    Answer: <Math tex={answerTex(problem.answer)} />
+                  </span>
+                )}
+              </div>
             </div>
-            {feedback && <div className="verdict-sub">{feedback}</div>}
+          )}
+
+          <div className="rate">
+            <div className="rate-label">{self ? 'How did it go?' : result.ok ? 'How was it?' : 'What happened?'}</div>
+            <div className="rate-buttons">
+              {options.choices.map((c, i) => (
+                <button
+                  key={c.rating}
+                  className={`rate-btn r-${c.rating} ${c.rating === options.def ? 'default' : ''}`}
+                  onClick={() => rate(c.rating)}
+                  disabled={rated}
+                >
+                  <span className="rate-top">
+                    <kbd>{i + 1}</kbd> {c.label}
+                    {c.rating === options.def && <kbd>⏎</kbd>}
+                  </span>
+                  <span className="rate-hint">{c.hint}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
-          <Disclosure open={showSolution} onToggle={setShowSolution} label="Worked solution">
-            <ol className="steps">
-              {problem.solution.map((s, i) => (
-                <li key={i}>
-                  <Text text={s} />
-                </li>
-              ))}
-            </ol>
+          <Disclosure open={showSolution} onToggle={setShowSolution} label={self ? 'Model proof' : 'Worked solution'}>
+            {self ? (
+              <div className="proof">
+                {problem.solution.map((s, i) => (
+                  <p key={i}>
+                    <Text text={s} />
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <ol className="steps">
+                {problem.solution.map((s, i) => (
+                  <li key={i}>
+                    <Text text={s} />
+                  </li>
+                ))}
+              </ol>
+            )}
           </Disclosure>
           <Disclosure open={showLearn} onToggle={setShowLearn} label="Learn this section">
             <LearnPanel skill={skill} />
           </Disclosure>
-
-          <div className="actions">
-            <button className="primary" onClick={onNext}>
-              Next <kbd>⏎</kbd>
-            </button>
-          </div>
         </>
       )}
     </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { SKILLS } from '../content';
 import { makeRng } from '../core/rng';
+import { solved } from '../core/scheduler';
 import { Card } from './Card';
 
 /** Unscheduled drilling: answers here never touch progress or the review schedule. */
@@ -47,8 +48,10 @@ export function Practice({ skillId, level, onExit }: { skillId: string; level: n
         skill={skill}
         level={lvl}
         problem={problem}
-        onAnswered={(ok) => setScore((s) => ({ right: s.right + (ok ? 1 : 0), total: s.total + 1 }))}
-        onNext={() => next()}
+        onRated={(r) => {
+          setScore((s) => ({ right: s.right + (solved(r) ? 1 : 0), total: s.total + 1 }));
+          next();
+        }}
       />
     </div>
   );

@@ -19,7 +19,7 @@ difficulty levels, and every problem is generated fresh.
 There are two ways to use it:
 
 - **Study** a chapter or a single section. This is how you make progress. You work through sections in book order,
-  and a section counts as **cleared** after 3 correct answers in a row. Due reviews from the same chapter are mixed in,
+  and a section counts as **cleared** after 3 solved in a row. Due reviews from the same chapter are mixed in,
   and missed problems come back a few problems later. A session is saved after every answer: **Pause** and come back
   later to the exact problem you left.
 - **Review**: a mixed set from every chapter you've studied, picked from your history. Weak sections come first and
@@ -31,10 +31,14 @@ Everything else:
 - **Grading** compares your expression numerically against the expected one at many points, so any equivalent
   form is accepted (`2(x+1)` = `2x+2`, `+ C` optional, `ln|x|` fine). Matrices are entered in a grid; eigenvectors and
   null-space vectors accept any non-zero multiple.
-- **Scheduling** (`src/core/scheduler.ts`): each section has an *ease* that learns from your answers. A correct answer
-  multiplies the interval by the ease (1d → 3d → ~6d → ~15d …). A miss brings the section back within minutes and
-  lowers its ease, so it grows more slowly afterwards. 3 correct on separate days unlocks the next level. A miss right
-  after a level-up drops you back one level to rebuild.
+- **You rate every card.** The app checks your answer, then you say how it went: *Hard / Good / Easy* when it's
+  right, *Didn't know how / Slip* when it's wrong (a slip means the method was right and the arithmetic wasn't; it
+  costs no progress). Enter picks the default, number keys pick the others. Proof cards have no answer box: show the
+  model proof, then rate yourself.
+- **Scheduling** (`src/core/scheduler.ts`): each section has an *ease* learned from your ratings. Solving it
+  multiplies the interval by the ease (less for Hard, more for Easy). "Didn't know how" brings it back within minutes
+  and lowers the ease, so it grows more slowly afterwards. 3 solved on separate days unlocks the next level. Losing it
+  right after a level-up drops you back one level to rebuild.
 - **Nothing is locked.** Open any chapter at any time. "I already know this" (for a section or a whole chapter)
   marks it cleared, and it gets checked at its top level in a review 3 days later.
 - **Learning material is optional.** Every chapter has an *About this chapter* panel (what it covers, why it matters,

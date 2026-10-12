@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { CHAPTER_OF, SKILLS, ALL_SKILLS } from '../content';
 import { isActive, recordAnswer } from '../core/actions';
 import { makeRng } from '../core/rng';
-import { reviewQueue, servedLevel } from '../core/scheduler';
+import { reviewQueue, servedLevel, solved, type Rating } from '../core/scheduler';
 import { getData } from '../core/store';
 import type { Problem } from '../core/types';
 import { Card } from './Card';
@@ -38,7 +38,6 @@ export function Review({ onExit }: { onExit(): void }) {
   const [done, setDone] = useState(0);
   const [right, setRight] = useState(0);
   const [feedback, setFeedback] = useState<ReactNode>(null);
-  const [requeue, setRequeue] = useState(false);
 
   const current = items[0];
 
@@ -48,7 +47,7 @@ export function Review({ onExit }: { onExit(): void }) {
         <h2>{done === 0 ? 'Nothing due right now' : 'Review complete'}</h2>
         {done > 0 && (
           <p>
-            {right} / {done} correct.
+            {right} / {done} solved.
           </p>
         )}
         <p className="muted">
@@ -64,21 +63,15 @@ export function Review({ onExit }: { onExit(): void }) {
     );
   }
 
-  const onAnswered = (ok: boolean) => {
+  const onRated = (rating: Rating) => {
     const now = Date.now();
-    const { before, after } = recordAnswer(current.skillId, current.level, ok, now);
+    const { before, after } = recordAnswer(current.skillId, current.level, rating, now);
     setDone((n) => n + 1);
-    if (ok) setRight((n) => n + 1);
-    setRequeue(after.due <= now + SOON);
-    setFeedback(describeAnswer(current.skillId, before, after, ok, now));
-  };
-
-  const onNext = () => {
+    if (solved(rating)) setRight((n) => n + 1);
+    setFeedback(describeAnswer(current.skillId, before, after, rating, now));
     const rest = items.slice(1);
-    if (requeue) rest.splice(Math.min(RETRY_GAP, rest.length), 0, makeItem(current.skillId));
+    if (rating === 'again' && after.due <= now + SOON) rest.splice(Math.min(RETRY_GAP, rest.length), 0, makeItem(current.skillId));
     setItems(rest);
-    setFeedback(null);
-    setRequeue(false);
   };
 
   const total = done + items.length;
@@ -99,9 +92,8 @@ export function Review({ onExit }: { onExit(): void }) {
         skill={SKILLS[current.skillId]}
         level={current.level}
         problem={current.problem}
-        onAnswered={onAnswered}
-        onNext={onNext}
-        feedback={feedback}
+        onRated={onRated}
+        banner={feedback}
       />
     </div>
   );

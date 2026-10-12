@@ -259,6 +259,8 @@ export function check(answer: Answer, response: Response): Verdict {
     }
     case 'choice':
       return { ok: response === answer.correct };
+    case 'self':
+      return { ok: true };
   }
 }
 
@@ -277,5 +279,7 @@ export function answerTex(answer: Answer): string {
       return `t\\begin{bmatrix} ${answer.expected.map((x) => exprTex(x)).join(' \\\\ ')} \\end{bmatrix},\\ t \\neq 0`;
     case 'choice':
       return answer.options[answer.correct];
+    case 'self':
+      return '';
   }
 }

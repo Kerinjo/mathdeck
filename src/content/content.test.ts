@@ -28,6 +28,8 @@ function expectedResponse(a: Answer) {
       return a.expected.map((x) => [`-2*(${x})`]);
     case 'choice':
       return a.correct;
+    case 'self':
+      return '';
   }
 }
 
@@ -52,8 +54,8 @@ describe('content', () => {
           if (p.answer.kind === 'expr') expect(parse(p.answer.expected, p.answer.vars).ok, where).toBe(true);
           expect(check(p.answer, expectedResponse(p.answer) as never), where).toEqual({ ok: true });
           expect(() => [p.prompt, ...p.solution].forEach(renderAll), where).not.toThrow();
-          if (p.answer.kind !== 'choice') expect(() => katex.renderToString(answerTex(p.answer), { throwOnError: true }), where).not.toThrow();
-          else p.answer.options.forEach((o) => expect(() => renderAll(o), where).not.toThrow());
+          if (p.answer.kind !== 'choice' && p.answer.kind !== 'self') expect(() => katex.renderToString(answerTex(p.answer), { throwOnError: true }), where).not.toThrow();
+          else if (p.answer.kind === 'choice') p.answer.options.forEach((o) => expect(() => renderAll(o), where).not.toThrow());
           p.solution.forEach((s) => expect(s.split('$').length % 2, `unbalanced $ in ${where}`).toBe(1));
           expect(p.prompt.split('$').length % 2, `unbalanced $ in ${where}`).toBe(1);
           if (p.selfCheck) expect(p.selfCheck(), `selfCheck ${where}`).toBe(true);

@@ -1,20 +1,26 @@
 import type { Skill } from './types';
 
 /**
- * Scheduling model (per skill, not per card):
- * - correct -> interval grows by the skill's ease (1d, 3d, ~6d, ~15d, ...), a fresh problem each time
- * - wrong   -> due again in minutes, and the skill's ease drops so it grows more slowly from now on
- * - easy skills (always right) gain ease and fade out faster
- * - 3 correct in a row (any days) = section "cleared": the first pass is done
- * - 3 correct in a row on separate days at a level -> next level unlocks
- * - a miss right after levelling up drops the next problem back one level
+ * Scheduling model (per skill, not per card). After every problem you rate how it went:
+ * - again ("didn't know how"): back within minutes, ease drops, runs reset
+ * - slip  (wrong, but the method was right): no penalty to progress; comes back a bit sooner
+ * - hard / good / easy: solved; the interval grows by the skill's ease, less for hard, more for easy
+ * Ease is learned per skill, so struggled skills come back often and easy ones fade out.
+ * - 3 solved in a row (any days) = section "cleared": the first pass is done
+ * - 3 solved in a row on separate days at a level -> next level unlocks
+ * - an "again" right after levelling up drops the next problem back one level
  */
+
+export type Rating = 'again' | 'slip' | 'hard' | 'good' | 'easy';
+export const solved = (r: Rating) => r === 'hard' || r === 'good' || r === 'easy';
 
 export const STREAK_TO_LEVEL_UP = 3;
 export const CLEAR_RUN = 3;
 const RETRY_DELAY = 10 * 60 * 1000;
 const MAX_INTERVAL = 180;
-export const EASE = { start: 2.5, min: 1.3, max: 3.2, up: 0.1, down: 0.25 };
+export const EASE = { start: 2.5, min: 1.3, max: 3.2, again: -0.25, slip: -0.05, hard: -0.15, good: 0, easy: 0.15 };
+/** Extra interval factor on top of ease. */
+const BONUS: Record<'hard' | 'good' | 'easy', number> = { hard: 0.5, good: 1, easy: 1.3 };
 
 export interface SkillState {
   /** Level currently being trained (0-based). */
@@ -35,7 +41,7 @@ export interface SkillState {
   mastered: boolean;
   /** Next problem is served one level lower to rebuild. */
   stepDown: boolean;
-  /** Consecutive misses, drives the "weak skills" list. */
+  /** Consecutive "again" ratings, drives the "struggling with" list. */
   missStreak: number;
   attempts: number;
   correct: number;
@@ -46,7 +52,9 @@ export interface LogEntry {
   t: number;
   skill: string;
   level: number;
+  /** Solved (hard/good/easy). */
   ok: boolean;
+  rating?: Rating;
 }
 
 export const dayKey = (t: number) => {
@@ -95,20 +103,31 @@ export const servedLevel = (s: SkillState) => (s.stepDown && s.level > 0 ? s.lev
 
 const clamp = (x: number) => Math.min(EASE.max, Math.max(EASE.min, x));
 
-export function review(s: SkillState, skill: Skill, ok: boolean, now: number): SkillState {
+export function review(s: SkillState, skill: Skill, rating: Rating, now: number): SkillState {
   const n: SkillState = { ...s, attempts: s.attempts + 1 };
   const today = dayKey(now);
   const maxLevel = skill.levels.length - 1;
 
-  if (!ok) {
+  if (rating === 'again') {
     n.missStreak = s.missStreak + 1;
     n.run = 0;
     n.streak = 0;
     n.interval = 0;
-    n.ease = clamp(s.ease - EASE.down);
+    n.ease = clamp(s.ease + EASE.again);
     n.due = now + RETRY_DELAY;
-    // A miss on a level you haven't landed yet: rebuild one level down first.
+    // Lost on a level you haven't landed yet: rebuild one level down first.
     if (!s.stepDown && s.level > 0 && s.streak === 0 && !s.mastered) n.stepDown = true;
+    return n;
+  }
+
+  if (rating === 'slip') {
+    // Progress, streaks and runs are left alone; just see it again a bit sooner.
+    n.ease = clamp(s.ease + EASE.slip);
+    if (s.interval < 1) n.due = now + RETRY_DELAY;
+    else {
+      n.interval = Math.max(1, s.interval / 2);
+      n.due = daysFrom(now, n.interval);
+    }
     return n;
   }
 
@@ -129,14 +148,14 @@ export function review(s: SkillState, skill: Skill, ok: boolean, now: number): S
   n.lastCorrectDay = today;
 
   if (!newDay) {
-    // Another correct answer the same day: see it tomorrow, no extra credit toward spacing.
+    // Another solve the same day: see it tomorrow, no extra credit toward spacing.
     n.interval = Math.max(s.interval, 1);
-    n.due = Math.max(s.due, daysFrom(now, 1));
+    n.due = Math.max(s.due, daysFrom(now, rating === 'easy' ? 2 : 1));
     return n;
   }
 
-  // Only a correct answer on a new day says something about retention.
-  if (s.attempts > 0) n.ease = clamp(s.ease + EASE.up);
+  // How hard it felt only says something about retention on a new day.
+  if (s.attempts > 0) n.ease = clamp(s.ease + EASE[rating]);
 
   if (n.streak >= STREAK_TO_LEVEL_UP && n.level < maxLevel && !s.mastered) {
     n.level += 1;
@@ -147,7 +166,9 @@ export function review(s: SkillState, skill: Skill, ok: boolean, now: number): S
   }
   if (n.streak >= STREAK_TO_LEVEL_UP && n.level === maxLevel) n.mastered = true;
 
-  n.interval = s.interval === 0 ? 1 : Math.min(MAX_INTERVAL, Math.max(s.interval + 1, s.interval * n.ease));
+  const grown = s.interval * n.ease * BONUS[rating];
+  n.interval =
+    s.interval === 0 ? (rating === 'easy' ? 3 : 1) : Math.min(MAX_INTERVAL, Math.max(s.interval + 1, grown));
   n.due = daysFrom(now, n.interval);
   return n;
 }

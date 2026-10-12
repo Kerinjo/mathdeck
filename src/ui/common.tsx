@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { CHAPTER_OF, SKILLS } from '../content';
-import { levelsDone, type SkillState, type Status } from '../core/scheduler';
+import { levelsDone, type Rating, type SkillState, type Status } from '../core/scheduler';
 import type { Chapter, Subject } from '../core/types';
 
 export const STATUS_LABEL: Record<Status, string> = {
@@ -61,14 +61,16 @@ export function when(ms: number) {
 }
 
 /** One-line feedback after an answer: what changed and what happens next. */
-export function describeAnswer(skillId: string, before: SkillState, after: SkillState, ok: boolean, now: number): ReactNode {
+export function describeAnswer(skillId: string, before: SkillState, after: SkillState, rating: Rating, now: number): ReactNode {
   const skill = SKILLS[skillId];
-  if (!ok) {
+  const name = <b>{skill.name}</b>;
+  if (rating === 'slip') return <>{name}: slip noted. No progress lost; it comes back {when(after.due - now)}.</>;
+  if (rating === 'again') {
     return (
       <>
-        It'll come back soon with a fresh problem.
+        {name} will come back soon with a fresh problem.
         {after.stepDown && ' One level easier first, to rebuild the basics.'}
-        {after.missStreak >= 2 && ' The intro and links below are worth a look.'}
+        {after.missStreak >= 2 && " If it keeps happening, the section's 📖 Intro is worth a look."}
       </>
     );
   }
@@ -78,20 +80,19 @@ export function describeAnswer(skillId: string, before: SkillState, after: Skill
     const next = order[order.indexOf(skillId) + 1];
     return (
       <>
-        <b>Section cleared ✓</b>
-        {next ? ` Next up: ${SKILLS[next].name}.` : ' That was the last main section of this chapter.'} It stays in your
-        reviews to make it stick.
+        <b>Section cleared ✓ {skill.name}.</b>
+        {next ? ` Next up: ${SKILLS[next].name}.` : ' That was the last main section of this chapter.'}
       </>
     );
   }
-  if (after.mastered && !before.mastered) return <>Mastered! Reviews of this section get rare now.</>;
+  if (after.mastered && !before.mastered) return <>{name} mastered! Reviews get rare now.</>;
   if (after.level > before.level)
     return (
       <>
-        Level up → <b>Level {after.level + 1}: {skill.levels[after.level].name}</b>, from tomorrow.
+        {name}: level up → <b>Level {after.level + 1}: {skill.levels[after.level].name}</b>, from tomorrow.
       </>
     );
-  if (before.stepDown) return <>Good. Back to level {after.level + 1} next.</>;
-  if (!after.cleared) return <>{after.run}/3 in a row to clear this section.</>;
-  return <>Next review {when(after.due - now)}.</>;
+  if (before.stepDown) return <>{name}: rebuilt. Back to level {after.level + 1} next.</>;
+  if (!after.cleared) return <>{name}: {after.run}/3 in a row to clear this section.</>;
+  return <>{name}: next review {when(after.due - now)}.</>;
 }

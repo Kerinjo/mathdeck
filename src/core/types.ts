@@ -12,7 +12,9 @@ export type Answer =
   | { kind: 'matrix'; expected: string[][] }
   /** Column vector, any non-zero multiple of `expected` is accepted. */
   | { kind: 'direction'; expected: string[] }
-  | { kind: 'choice'; options: string[]; correct: number };
+  | { kind: 'choice'; options: string[]; correct: number }
+  /** No answer box: show the model solution, then you rate yourself (proofs). */
+  | { kind: 'self' };
 
 export interface Problem {
   prompt: string;
