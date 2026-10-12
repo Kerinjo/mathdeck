@@ -1,8 +1,9 @@
 name: Deploy to GitHub Pages
 
+# master = the live site (deploys); dev = everyday work (tests only, never deploys).
 on:
   push:
-    branches: [master]
+    branches: [master, dev]
   workflow_dispatch:
 
 permissions:
@@ -26,11 +27,13 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
+      - if: github.ref == 'refs/heads/master'
+        uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   deploy:
+    if: github.ref == 'refs/heads/master'
     needs: build
     runs-on: ubuntu-latest
     environment:

@@ -2,6 +2,10 @@
 
 **Live: https://kerinjo.github.io/mathdeck/** (redeployed automatically on every push to `master`).
 
+Branches: work happens on `dev` (full history, pushed freely, CI runs the tests but never deploys). `master` is the
+live site with one commit per release: `scripts/release.sh "title"` creates it from `dev`'s files, then
+`git push origin master` deploys.
+
 Spaced repetition for maths, with exercises instead of flashcards. Every review generates a fresh problem.
 You solve it on paper, type the final answer, and the app grades it.
 
