@@ -246,6 +246,7 @@ const modArith: Skill = {
         const v = mod(a * b + c, m);
         return {
           prompt: `Compute $(${a} \\cdot ${b} ${c < 0 ? '-' : '+'} ${Math.abs(c)}) \\bmod ${m}$.`,
+          hint: `No calculator needed: reduce each number mod ${m} first (e.g. find the nearest multiple of ${m}), then combine the small remainders.`,
           answer: num(v),
           solution: [
             `Reduce each number first: $${a} \\equiv ${a % m}$, $${b} \\equiv ${b % m}$, $${c} \\equiv ${mod(c, m)} \\pmod{${m}}$.`,
@@ -263,6 +264,7 @@ const modArith: Skill = {
         const v = powmod(a, k, m);
         return {
           prompt: `Compute $${a}^{${k}} \\bmod ${m}$.`,
+          hint: `Repeated squaring: compute $${a}^1, ${a}^2, ${a}^4, ${a}^8, \\dots$ mod ${m}, reducing after every step, then multiply the ones that make up ${k} in binary.`,
           answer: num(v),
           solution: [squaringSteps(a, k, m), `Result: $${v}$.`],
         };
@@ -278,6 +280,7 @@ const modArith: Skill = {
         const v = powmod(a, k, m);
         return {
           prompt: `What are the last ${two ? 'two digits' : 'digit'} of $${a}^{${k}}$? ${two ? '(Give a number from 0 to 99.)' : ''}`,
+          hint: `The last ${two ? 'two digits are' : 'digit is'} the value mod ${m}. Powers mod ${m} repeat in a cycle: find it, then reduce the exponent.`,
           answer: num(v),
           solution: [
             `This is $${a}^{${k}} \\bmod ${m}$.`,
@@ -312,6 +315,7 @@ const inverses: Skill = {
         const inv = inverse(a, m);
         return {
           prompt: `Find the inverse of ${a} modulo ${m} (a number from 0 to ${m - 1}).`,
+          hint: `You need $x$ with $${a}x \\equiv 1 \\pmod{${m}}$. Run the extended Euclidean algorithm on ${m} and ${a}, or (small $m$) try multiples of ${a}.`,
           answer: num(inv),
           solution: [`Extended Euclid on ${m} and ${a} gives $${a}\\cdot ${inv} = ${a * inv} = ${Math.floor((a * inv) / m)}\\cdot ${m} + 1$.`, `So $${a}^{-1} \\equiv ${inv} \\pmod{${m}}$.`],
           selfCheck: () => (a * inv) % m === 1,
@@ -329,6 +333,7 @@ const inverses: Skill = {
         const x = (inverse(a, m) * b) % m;
         return {
           prompt: `Solve $${a}x \\equiv ${b} \\pmod{${m}}$ (give $x$ from 0 to ${m - 1}).`,
+          hint: `Find the inverse of ${a} mod ${m}, then multiply both sides by it.`,
           answer: num(x),
           solution: [`$${a}^{-1} \\equiv ${inverse(a, m)} \\pmod{${m}}$. Multiply both sides by it: $x \\equiv ${inverse(a, m)}\\cdot ${b} \\equiv ${x}$.`],
           selfCheck: () => (a * x) % m === b,
@@ -420,6 +425,7 @@ function crtProblem(r: Rng, k: number): Problem {
     return { m, a: as[i], Mi, y: inverse(Mi, m) };
   });
   return {
+    hint: `Step through the numbers that satisfy the largest modulus (${ms[ms.length - 1]}) and test the other conditions; or use $x = \\sum a_i M_i (M_i^{-1} \\bmod m_i)$.`,
     prompt: `Find the smallest positive $x$ with ${ms.map((m, i) => `$x \\equiv ${as[i]} \\pmod{${m}}$`).join(', ')}.`,
     answer: num(x || M),
     solution: [
@@ -463,6 +469,7 @@ const fermat: Skill = {
         const v = powmod(a, k, p);
         return {
           prompt: `Compute $${a}^{${k}} \\bmod ${p}$.`,
+          hint: `${p} is prime, so Fermat's little theorem lets you reduce the exponent mod ${p - 1} first.`,
           answer: num(v),
           solution: [
             `${p} is prime and does not divide ${a}, so Fermat gives $${a}^{${p - 1}} \\equiv 1 \\pmod{${p}}$.`,
@@ -483,6 +490,7 @@ const fermat: Skill = {
         const v = powmod(a, k, n);
         return {
           prompt: `Compute $${a}^{${k}} \\bmod ${n}$.`,
+          hint: `$\\gcd(${a}, ${n}) = 1$, so Euler's theorem lets you reduce the exponent mod $\\varphi(${n})$ first.`,
           answer: num(v),
           solution: [
             `$\\gcd(${a}, ${n}) = 1$ and $\\varphi(${n}) = ${ph}$, so Euler gives $${a}^{${ph}} \\equiv 1 \\pmod{${n}}$.`,

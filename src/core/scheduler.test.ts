@@ -70,6 +70,19 @@ describe('scheduler', () => {
     expect(s.cleared).toBe(true);
   });
 
+  it('a hinted solve gives half credit and no level progress', () => {
+    let s = newState(T0);
+    s = review(s, k, 'hinted', T0);
+    s = review(s, k, 'hinted', T0 + DAY);
+    expect(s.run).toBe(1);
+    expect(s.streak).toBe(0);
+    expect(s.cleared).toBe(false);
+    for (let d = 2; d < 6; d++) s = review(s, k, 'hinted', T0 + d * DAY);
+    expect(s.cleared).toBe(true);
+    expect(s.level).toBe(0);
+    expect(s.due - (T0 + 5 * DAY)).toBeLessThan(DAY * 1.5);
+  });
+
   it('easy pushes further out than hard', () => {
     let easy = newState(T0);
     let hard = newState(T0);

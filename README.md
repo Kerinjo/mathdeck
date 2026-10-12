@@ -33,7 +33,9 @@ Everything else:
   null-space vectors accept any non-zero multiple.
 - **You rate every card.** The app checks your answer, then you say how it went: *Hard / Good / Easy* when it's
   right, *Didn't know how / Slip* when it's wrong (a slip means the method was right and the arithmetic wasn't; it
-  costs no progress). Enter picks the default, number keys pick the others. Proof cards have no answer box: show the
+  costs no progress). Enter picks the default, number keys pick the others. **💡 Hint** shows a nudge toward the
+  method; solving after a hint counts as *Solved with a hint*: half credit toward clearing, nothing toward levelling up,
+  and the problem comes back tomorrow. Proof cards have no answer box: show the
   model proof, then rate yourself.
 - **Scheduling** (`src/core/scheduler.ts`): each section has an *ease* learned from your ratings. Solving it
   multiplies the interval by the ease (less for Hard, more for Easy). "Didn't know how" brings it back within minutes

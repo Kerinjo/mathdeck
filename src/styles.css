@@ -957,9 +957,27 @@ h1 {
   border-radius: 8px;
   background: var(--surface-2);
 }
-.actions .intro-btn {
+.actions .aux-buttons {
   margin-right: auto;
+  display: inline-flex;
+  gap: 0.5rem;
 }
+.hint-panel {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px dashed var(--warn);
+  line-height: 1.7;
+}
+.hint-tag {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--warn);
+  font-weight: 600;
+  margin-right: 0.4rem;
+}
+.r-hinted { --rc: var(--warn); }
 .ghost.active {
   border-color: var(--accent);
 }

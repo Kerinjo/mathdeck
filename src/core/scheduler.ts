@@ -4,6 +4,8 @@ import type { Skill } from './types';
  * Scheduling model (per skill, not per card). After every problem you rate how it went:
  * - again ("didn't know how"): back within minutes, ease drops, runs reset
  * - slip  (wrong, but the method was right): no penalty to progress; comes back a bit sooner
+ * - hinted (solved after revealing a hint): half credit toward clearing, nothing toward levelling up,
+ *   a small ease penalty, and back tomorrow
  * - hard / good / easy: solved; the interval grows by the skill's ease, less for hard, more for easy
  * Ease is learned per skill, so struggled skills come back often and easy ones fade out.
  * - 3 solved in a row (any days) = section "cleared": the first pass is done
@@ -11,14 +13,16 @@ import type { Skill } from './types';
  * - an "again" right after levelling up drops the next problem back one level
  */
 
-export type Rating = 'again' | 'slip' | 'hard' | 'good' | 'easy';
-export const solved = (r: Rating) => r === 'hard' || r === 'good' || r === 'easy';
+export type Rating = 'again' | 'slip' | 'hinted' | 'hard' | 'good' | 'easy';
+export const solved = (r: Rating) => r === 'hinted' || r === 'hard' || r === 'good' || r === 'easy';
 
 export const STREAK_TO_LEVEL_UP = 3;
 export const CLEAR_RUN = 3;
 const RETRY_DELAY = 10 * 60 * 1000;
 const MAX_INTERVAL = 180;
-export const EASE = { start: 2.5, min: 1.3, max: 3.2, again: -0.25, slip: -0.05, hard: -0.15, good: 0, easy: 0.15 };
+export const EASE = { start: 2.5, min: 1.3, max: 3.2, again: -0.25, slip: -0.05, hinted: -0.1, hard: -0.15, good: 0, easy: 0.15 };
+/** A hinted solve counts this much toward the clearing run. */
+export const HINT_CREDIT = 0.5;
 /** Extra interval factor on top of ease. */
 const BONUS: Record<'hard' | 'good' | 'easy', number> = { hard: 0.5, good: 1, easy: 1.3 };
 
@@ -33,7 +37,7 @@ export interface SkillState {
   due: number;
   /** Interval multiplier, learned from your history with this skill. */
   ease: number;
-  /** Consecutive correct answers, regardless of day. */
+  /** Consecutive solves, regardless of day (hinted solves count half). */
   run: number;
   /** First pass done: CLEAR_RUN correct in a row at some point. */
   cleared: boolean;
@@ -133,6 +137,17 @@ export function review(s: SkillState, skill: Skill, rating: Rating, now: number)
 
   n.correct = s.correct + 1;
   n.missStreak = 0;
+
+  if (rating === 'hinted') {
+    // Partial credit: half a step toward clearing, nothing toward levelling up, back tomorrow.
+    n.run = s.run + HINT_CREDIT;
+    if (n.run >= CLEAR_RUN) n.cleared = true;
+    if (s.attempts > 0) n.ease = clamp(s.ease + EASE.hinted);
+    n.interval = 1;
+    n.due = s.stepDown ? now + RETRY_DELAY : daysFrom(now, 1);
+    return n;
+  }
+
   n.run = s.run + 1;
   if (n.run >= CLEAR_RUN) n.cleared = true;
 

@@ -69,6 +69,12 @@ export function when(ms: number) {
 export function describeAnswer(skillId: string, before: SkillState, after: SkillState, rating: Rating, now: number): ReactNode {
   const skill = SKILLS[skillId];
   const name = <b>{skill.name}</b>;
+  if (rating === 'hinted' && !(after.cleared && !before.cleared))
+    return (
+      <>
+        {name}: solved with a hint. Half credit toward clearing{after.cleared ? '' : ` (${after.run}/3)`}; it comes back tomorrow.
+      </>
+    );
   if (rating === 'slip') return <>{name}: slip noted. No progress lost; it comes back {when(after.due - now)}.</>;
   if (rating === 'again') {
     return (

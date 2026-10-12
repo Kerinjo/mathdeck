@@ -39,6 +39,11 @@ export interface Problem {
   answer: Answer;
   /** Worked solution, one step per entry. */
   solution: string[];
+  /**
+   * A nudge toward the method, revealed on request at a cost (half credit). Without one, the first step of a
+   * multi-step worked solution is used, except for multiple choice where that could give the answer away.
+   */
+  hint?: string;
   /** Optional input hint shown under the answer box, e.g. "Enter a fraction". */
   inputHint?: string;
   /** Independent verification of the generator, used by tests only. */

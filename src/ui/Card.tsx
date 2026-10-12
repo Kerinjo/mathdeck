@@ -18,7 +18,7 @@ interface Props {
   banner?: ReactNode;
 }
 
-type Result = { ok: boolean; gaveUp: boolean; self: boolean };
+type Result = { ok: boolean; gaveUp: boolean; self: boolean; hinted: boolean };
 
 interface Choice {
   rating: Rating;
@@ -28,6 +28,14 @@ interface Choice {
 
 /** What you can say about how it went, depending on the outcome. The first default is used for Enter. */
 function choicesFor(r: Result): { choices: Choice[]; def: Rating } {
+  if (r.hinted && (r.ok || r.self) && !r.gaveUp)
+    return {
+      choices: [
+        ...(r.self ? [{ rating: 'again' as Rating, label: "Couldn't do it", hint: 'back soon' }] : []),
+        { rating: 'hinted', label: 'Solved with a hint', hint: 'half credit, back tomorrow' },
+      ],
+      def: 'hinted',
+    };
   if (r.self)
     return {
       choices: [
@@ -65,7 +73,11 @@ export function Card({ skill, level, problem, onRated, banner }: Props) {
   const [showSolution, setShowSolution] = useState(false);
   const [showLearn, setShowLearn] = useState(false);
   const [rated, setRated] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   const gradedAt = useRef(0);
+  const hint =
+    problem.hint ??
+    (problem.answer.kind !== 'choice' && problem.solution.length >= 2 ? problem.solution[0] : undefined);
 
   const grade = (v: ResponseValue = response) => {
     if (result) return;
@@ -77,7 +89,7 @@ export function Card({ skill, level, problem, onRated, banner }: Props) {
   };
   const finish = (ok: boolean, gaveUp: boolean) => {
     gradedAt.current = Date.now();
-    setResult({ ok, gaveUp, self });
+    setResult({ ok, gaveUp, self, hinted: showHint });
     setShowSolution(!ok || self);
     setShowLearn(!ok && !self);
   };
@@ -166,9 +178,21 @@ export function Card({ skill, level, problem, onRated, banner }: Props) {
 
       {!result && (
         <div className="actions">
-          <button className={`ghost intro-btn ${showLearn ? 'active' : ''}`} onClick={() => setShowLearn(!showLearn)}>
-            📖 Intro
-          </button>
+          <span className="aux-buttons">
+            <button className={`ghost ${showLearn ? 'active' : ''}`} onClick={() => setShowLearn(!showLearn)}>
+              📖 Intro
+            </button>
+            {hint && (
+              <button
+                className={`ghost ${showHint ? 'active' : ''}`}
+                onClick={() => setShowHint(true)}
+                disabled={showHint}
+                title="Costs half the credit for this problem"
+              >
+                💡 Hint
+              </button>
+            )}
+          </span>
           {self ? (
             <button className="primary" onClick={() => finish(true, false)}>
               Show model proof <kbd>⏎</kbd>
@@ -185,6 +209,11 @@ export function Card({ skill, level, problem, onRated, banner }: Props) {
               )}
             </>
           )}
+        </div>
+      )}
+      {showHint && hint && (
+        <div className="hint-panel">
+          <span className="hint-tag">Hint</span> <Text text={hint} />
         </div>
       )}
       {!result && showLearn && (

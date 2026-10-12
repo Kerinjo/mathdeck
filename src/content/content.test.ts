@@ -60,7 +60,8 @@ describe('content', () => {
           if (p.answer.kind === 'expr') expect(parse(p.answer.expected, p.answer.vars).ok, where).toBe(true);
           if (p.answer.kind === 'choice') expect(new Set(p.answer.options).size, `duplicate options in ${where}`).toBe(p.answer.options.length);
           expect(check(p.answer, expectedResponse(p.answer) as never), where).toEqual({ ok: true });
-          expect(() => [p.prompt, ...p.solution].forEach(renderAll), where).not.toThrow();
+          expect(() => [p.prompt, ...p.solution, p.hint ?? ''].forEach(renderAll), where).not.toThrow();
+          if (p.hint) expect(p.hint.split('$').length % 2, `unbalanced $ in hint of ${where}`).toBe(1);
           if (p.answer.kind !== 'choice' && p.answer.kind !== 'self') expect(() => katex.renderToString(answerTex(p.answer), { throwOnError: true }), where).not.toThrow();
           else if (p.answer.kind === 'choice') p.answer.options.forEach((o) => expect(() => renderAll(o), where).not.toThrow());
           p.solution.forEach((s) => expect(s.split('$').length % 2, `unbalanced $ in ${where}`).toBe(1));
