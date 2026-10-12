@@ -20,55 +20,10 @@ import {
   type Mat,
 } from '../core/frac';
 import { coef, signed, sum, t } from '../core/fmt';
-import type { Chapter, Problem, Resource, Rng, Skill } from '../core/types';
+import type { Chapter, Problem, Rng, Skill } from '../core/types';
 import { distinct } from './helpers';
-
-const ila = (page: string, title: string): Resource => ({
-  kind: 'book',
-  title: `Interactive Linear Algebra (Margalit & Rabinoff): ${title}`,
-  url: `https://textbooks.math.gatech.edu/ila/${page}.html`,
-});
-const tb1b = (slug: string, title: string): Resource => ({
-  kind: 'video',
-  title: `3Blue1Brown, Essence of Linear Algebra: ${title}`,
-  url: `https://www.3blue1brown.com/lessons/${slug}`,
-});
-const strang: Resource = {
-  kind: 'video',
-  title: 'MIT 18.06 (Gilbert Strang): full lecture course',
-  url: 'https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/',
-};
-
-const matrixAns = (m: Mat): Problem['answer'] => ({ kind: 'matrix', expected: matStrings(m) });
-const vecAns = (v: Q[]): Problem['answer'] => ({ kind: 'matrix', expected: v.map((x) => [x.toString()]) });
-const num = (q: Q | string, display?: string): Problem['answer'] => ({
-  kind: 'number',
-  expected: q.toString(),
-  display: display ?? (q instanceof Q ? q.tex() : undefined),
-});
-
-const randVec = (r: Rng, n: number, lo = -5, hi = 5) => Array.from({ length: n }, () => new Q(r.int(lo, hi)));
-const randMat = (r: Rng, rows: number, cols: number, lo = -4, hi = 4) =>
-  Array.from({ length: rows }, () => randVec(r, cols, lo, hi));
-const maxAbs = (m: Mat) => Math.max(...m.flat().map((x) => Math.abs(x.value())));
-const isZeroVec = (v: Q[]) => v.every((x) => x.isZero());
-
-/** Integer matrix with determinant 1, built from random row additions. */
-function unimodular(r: Rng, n: number, steps = 2 * n, bound = 4): Mat {
-  const m = identity(n).map((row) => row.map((x) => x.value()));
-  let done = 0;
-  for (let tries = 0; done < steps && tries < 200; tries++) {
-    const i = r.int(0, n - 1);
-    const j = r.int(0, n - 1);
-    if (i === j) continue;
-    const k = r.nz(-2, 2);
-    const row = m[i].map((x, c) => x + k * m[j][c]);
-    if (row.some((x) => Math.abs(x) > bound)) continue;
-    m[i] = row;
-    done++;
-  }
-  return mat(m);
-}
+import { changeOfBasis, cramer, lu, planes, projections, singularValues } from './linalg-deeper';
+import { ila, isZeroVec, matrixAns, maxAbs, num, P, randMat, randVec, strang, tb1b, unimodular, vecAns } from './la-helpers';
 
 /** A random matrix whose RREF has small integer entries: pick the RREF, then scramble rows. */
 function withNiceRref(r: Rng, rows: number, cols: number, rk: number): { a: Mat; R: Mat; pivots: number[] } {
@@ -493,7 +448,6 @@ const detProps: Skill = {
   },
 };
 
-const P = (n: number | Q) => (Q.of(n).n < 0 ? `(${Q.of(n).tex()})` : Q.of(n).tex());
 
 // ---------------------------------------------------------------------------
 
@@ -1200,7 +1154,7 @@ export const linalgChapters: Chapter[] = [
     why: 'Everything in linear algebra is built on vectors. In computing they are points, colours, feature vectors and embeddings; the dot product is how similarity is measured.',
     resources: [tb1b('vectors', 'Vectors, what even are they?'), ila('vectors', 'Vectors'), { kind: 'interactive', title: 'Immersive Linear Algebra: Vectors', url: 'http://immersivemath.com/ila/ch02_vectors/ch02.html' }],
     skills: [vectors, geometry],
-    deeper: [],
+    deeper: [planes],
   },
   {
     id: 'la.ch.systems',
@@ -1218,7 +1172,7 @@ export const linalgChapters: Chapter[] = [
     why: 'Matrices are how graphics engines move objects, how neural network layers work, and how systems of equations are solved in one step.',
     resources: [tb1b('linear-transformations', 'Linear transformations and matrices'), tb1b('matrix-multiplication', 'Matrix multiplication as composition'), ila('matrix-multiplication', 'Matrix Multiplication')],
     skills: [matmul, inverseSkill, transforms],
-    deeper: [],
+    deeper: [lu],
   },
   {
     id: 'la.ch.determinants',
@@ -1227,7 +1181,7 @@ export const linalgChapters: Chapter[] = [
     why: 'The determinant tells you at a glance whether a matrix is invertible and how much it scales area or volume (which is why it appears in change of variables).',
     resources: [tb1b('determinant', 'The determinant'), ila('determinants-definitions-properties', 'Determinants: Definition')],
     skills: [determinant, detProps],
-    deeper: [],
+    deeper: [cramer],
   },
   {
     id: 'la.ch.spaces',
@@ -1236,7 +1190,7 @@ export const linalgChapters: Chapter[] = [
     why: 'These ideas explain when a system has a unique solution, how many degrees of freedom data really has, and what a "basis" or "dimension" means.',
     resources: [tb1b('span', 'Linear combinations, span, and basis vectors'), tb1b('inverse-matrices', 'Inverse matrices, column space and null space'), ila('linear-independence', 'Linear Independence')],
     skills: [independence, rankSkill],
-    deeper: [],
+    deeper: [changeOfBasis],
   },
   {
     id: 'la.ch.eigen',
@@ -1245,7 +1199,7 @@ export const linalgChapters: Chapter[] = [
     why: 'Eigenvectors are the directions a transformation only stretches. They drive PageRank, PCA, stability analysis and the second-derivative test in many variables.',
     resources: [tb1b('eigenvalues', 'Eigenvectors and eigenvalues'), ila('eigenvectors', 'Eigenvalues and Eigenvectors'), strang],
     skills: [eigen, definiteness],
-    deeper: [diagonalization],
+    deeper: [diagonalization, singularValues],
   },
   {
     id: 'la.ch.orthogonality',
@@ -1254,6 +1208,6 @@ export const linalgChapters: Chapter[] = [
     why: 'Least squares is linear regression. Orthogonal bases make computations numerically stable and are the basis of QR decomposition.',
     resources: [ila('projections', 'Orthogonal Projection'), ila('least-squares', 'The Method of Least Squares'), strang],
     skills: [orthogonal],
-    deeper: [],
+    deeper: [projections],
   },
 ];
