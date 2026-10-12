@@ -111,7 +111,7 @@ their own (probability borrows only a little counting and a few integrals, noted
 | **Discrete Math** | Sets, functions and relations (with partial orders) · Counting (with binomial identities) · Recurrences (with setting them up) · Asymptotics (with counting loop iterations) | countability · derangements, Catalan and Stirling numbers · generating functions · divide-and-conquer recurrences |
 | **Graph Theory** | Graph basics (with isomorphism) · Paths and traversal (with distances and connectivity) · Trees · Colouring, planarity and matching (with cliques, independent sets and covers; drawn graphs throughout) | directed graphs (topological sort, strong components) · Prüfer codes · extremal graphs and Ramsey theory |
 | **Number Theory** | Divisibility (primes, gcd, divisibility rules, Diophantine equations, number bases) · Modular arithmetic · Fermat, Euler and RSA | arithmetic functions · check digits and calendars · orders, primitive roots and square roots · Diffie–Hellman and discrete logs |
-| **Probability & Statistics** | Probability basics · Conditional probability · Random variables · Continuous distributions · Statistics | Markov chains · linearity of expectation · Poisson · Markov and Chebyshev bounds · hypothesis tests |
+| **Probability & Statistics** | Probability basics · Conditional probability · Random variables (with joint distributions and covariance) · Continuous distributions · Statistics | Markov chains · linearity of expectation · Poisson · Markov and Chebyshev bounds · hypothesis tests |
 
 Answer types: expressions, numbers, lists, sets, matrices/vectors, logical formulas (any equivalent formula, optionally
 in a required shape such as CNF), vertex sequences, multiple choice, and self-rated proofs.

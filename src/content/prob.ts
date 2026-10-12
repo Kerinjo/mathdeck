@@ -602,6 +602,122 @@ const expectation: Skill = {
   },
 };
 
+/** A joint pmf of X (rows) and Y (columns); independent tables are products of their marginals. */
+function jointTable(r: Rng, independent: boolean) {
+  const xs = distinct(r, 2, -1, 3).sort((a, b) => a - b);
+  const ys = distinct(r, 3, -1, 4).sort((a, b) => a - b);
+  let P: Q[][];
+  if (independent) {
+    const a = composition(r, 10, 2).map((x) => new Q(x, 10));
+    const b = composition(r, 10, 3).map((x) => new Q(x, 10));
+    P = a.map((ai) => b.map((bj) => ai.mul(bj)));
+  } else {
+    const cells = composition(r, 20, 6).map((x) => new Q(x, 20));
+    P = [cells.slice(0, 3), cells.slice(3)];
+  }
+  const px = P.map((row) => row.reduce((s, x) => s.add(x), new Q(0)));
+  const py = ys.map((_, j) => P[0][j].add(P[1][j]));
+  const EX = xs.reduce((s, x, i) => s.add(px[i].mul(x)), new Q(0));
+  const EY = ys.reduce((s, y, j) => s.add(py[j].mul(y)), new Q(0));
+  const EXY = xs.reduce((s, x, i) => s.add(ys.reduce((t2, y, j) => t2.add(P[i][j].mul(x * y)), new Q(0))), new Q(0));
+  const tex = `$$\\begin{array}{c|ccc} & Y = ${ys[0]} & Y = ${ys[1]} & Y = ${ys[2]} \\\\ \\hline ${xs.map((x, i) => `X = ${x} & ${P[i].map((p) => p.tex()).join(' & ')}`).join(' \\\\ ')} \\end{array}$$`;
+  return { xs, ys, P, px, py, EX, EY, EXY, cov: EXY.sub(EX.mul(EY)), tex };
+}
+
+const joint: Skill = {
+  id: 'prob.joint',
+  name: 'Joint distributions and covariance',
+  prereqs: ['prob.ev'],
+  levels: [
+    {
+      name: 'marginals and conditionals',
+      generate(r) {
+        const J = jointTable(r, r.next() < 0.3);
+        const [i, j] = [r.int(0, 1), r.int(0, 2)];
+        const kind = r.int(0, 2);
+        if (kind === 0)
+          return {
+            prompt: `$X$ and $Y$ have this joint distribution: ${J.tex} Find $P(X = ${J.xs[i]})$.`,
+            answer: num(J.px[i]),
+            solution: [`Add along the row: $${J.P[i].map((p) => p.tex()).join(' + ')} = ${J.px[i].tex()}$`],
+          };
+        if (kind === 1)
+          return {
+            prompt: `$X$ and $Y$ have this joint distribution: ${J.tex} Find $P(Y = ${J.ys[j]})$.`,
+            answer: num(J.py[j]),
+            solution: [`Add down the column: $${J.P[0][j].tex()} + ${J.P[1][j].tex()} = ${J.py[j].tex()}$`],
+          };
+        const c = J.P[i][j].div(J.py[j]);
+        return {
+          prompt: `$X$ and $Y$ have this joint distribution: ${J.tex} Find $P(X = ${J.xs[i]} \\mid Y = ${J.ys[j]})$.`,
+          answer: num(c),
+          solution: [`$P(Y = ${J.ys[j]}) = ${J.py[j].tex()}$ (column sum).`, `$P(X = ${J.xs[i]} \\mid Y = ${J.ys[j]}) = \\dfrac{${J.P[i][j].tex()}}{${J.py[j].tex()}} = ${c.tex()}$`],
+        };
+      },
+    },
+    {
+      name: 'expectation of a product and covariance',
+      generate(r) {
+        const J = jointTable(r, false);
+        const wantCov = r.next() < 0.6;
+        return {
+          prompt: `$X$ and $Y$ have this joint distribution: ${J.tex} Find $${wantCov ? '\\operatorname{Cov}(X, Y)' : 'E[XY]'}$.`,
+          answer: num(wantCov ? J.cov : J.EXY),
+          solution: [
+            `$E[XY] = \\sum xy\\,P(X = x, Y = y) = ${J.EXY.tex()}$ (only cells with $xy \\ne 0$ contribute).`,
+            ...(wantCov ? [`Marginals give $E[X] = ${J.EX.tex()}$ and $E[Y] = ${J.EY.tex()}$.`, `$\\operatorname{Cov}(X, Y) = E[XY] - E[X]E[Y] = ${J.EXY.tex()} - ${J.EX.mul(J.EY).tex()} = ${J.cov.tex()}$`] : []),
+          ],
+        };
+      },
+    },
+    {
+      name: 'independence, sums and correlation',
+      generate(r) {
+        const kind = r.int(0, 2);
+        if (kind === 0) {
+          const ind = r.next() < 0.5;
+          const J = jointTable(r, ind);
+          const actuallyInd = J.P.every((row, i) => row.every((p, j) => p.eq(J.px[i].mul(J.py[j]))));
+          return {
+            prompt: `$X$ and $Y$ have this joint distribution: ${J.tex} Are $X$ and $Y$ independent?`,
+            answer: yesNo(actuallyInd),
+            solution: actuallyInd
+              ? [`Marginals: $P(X) = ${J.px.map((p) => p.tex()).join(', ')}$ and $P(Y) = ${J.py.map((p) => p.tex()).join(', ')}$.`, 'Every cell equals the product of its row and column totals: independent.']
+              : (() => {
+                  const [a, b] = [0, 1, 2].flatMap((jj) => [0, 1].map((ii) => [ii, jj])).find(([ii, jj]) => !J.P[ii][jj].eq(J.px[ii].mul(J.py[jj])))!;
+                  return [`Check one cell: $P(X = ${J.xs[a]}, Y = ${J.ys[b]}) = ${J.P[a][b].tex()}$, but $P(X = ${J.xs[a]})P(Y = ${J.ys[b]}) = ${J.px[a].tex()}\\cdot ${J.py[b].tex()} = ${J.px[a].mul(J.py[b]).tex()}$.`, 'One mismatch is enough: not independent.'];
+                })(),
+          };
+        }
+        if (kind === 1) {
+          const [vx, vy] = [r.int(1, 12), r.int(1, 12)];
+          const c = r.int(-Math.floor(Math.sqrt(vx * vy)), Math.floor(Math.sqrt(vx * vy)));
+          const [a, b] = [r.nz(-3, 3), r.nz(-3, 3)];
+          const v = a * a * vx + b * b * vy + 2 * a * b * c;
+          return {
+            prompt: `$\\operatorname{Var}(X) = ${vx}$, $\\operatorname{Var}(Y) = ${vy}$ and $\\operatorname{Cov}(X, Y) = ${c}$. Find $\\operatorname{Var}(${a === 1 ? '' : a === -1 ? '-' : a}X ${b < 0 ? '-' : '+'} ${Math.abs(b) === 1 ? '' : Math.abs(b)}Y)$.`,
+            answer: num(v),
+            solution: ['$\\operatorname{Var}(aX + bY) = a^2\\operatorname{Var}(X) + b^2\\operatorname{Var}(Y) + 2ab\\operatorname{Cov}(X, Y)$: the covariance term only vanishes for uncorrelated variables.', `$${a * a}\\cdot ${vx} + ${b * b}\\cdot ${vy} + 2\\cdot(${a * b})\\cdot(${c}) = ${v}$`],
+          };
+        }
+        const [sx, sy] = [r.int(1, 6), r.int(1, 6)];
+        const c = r.int(-sx * sy, sx * sy);
+        const rho = new Q(c, sx * sy);
+        return {
+          prompt: `$X$ has standard deviation ${sx}, $Y$ has standard deviation ${sy}, and $\\operatorname{Cov}(X, Y) = ${c}$. Find the correlation $\\rho(X, Y)$.`,
+          answer: num(rho),
+          solution: [`$\\rho = \\dfrac{\\operatorname{Cov}(X, Y)}{\\sigma_X\\sigma_Y} = \\dfrac{${c}}{${sx * sy}} = ${rho.tex()}$`, 'It always lies in $[-1, 1]$; $\\pm 1$ means $Y$ is an exact linear function of $X$.'],
+        };
+      },
+    },
+  ],
+  learn: {
+    summary:
+      'A joint distribution gives $P(X = x, Y = y)$ for every pair. Row and column sums give the marginals; dividing a cell by a marginal gives a conditional probability. $X$ and $Y$ are independent when every cell is the product of its marginals. $\\operatorname{Cov}(X, Y) = E[XY] - E[X]E[Y]$ measures how they move together, and $\\operatorname{Var}(X + Y) = \\operatorname{Var}X + \\operatorname{Var}Y + 2\\operatorname{Cov}(X, Y)$. Correlation $\\rho = \\frac{\\operatorname{Cov}}{\\sigma_X\\sigma_Y}$ is covariance on a $[-1, 1]$ scale. Independent implies uncorrelated, but not conversely.',
+    resources: [wiki('Joint_probability_distribution', 'Joint probability distribution'), wiki('Covariance', 'Covariance'), openIntro, grinstead],
+  },
+};
+
 const P_CHOICES = [new Q(1, 2), new Q(1, 3), new Q(2, 3), new Q(1, 4), new Q(3, 4), new Q(1, 5), new Q(2, 5), new Q(3, 5), new Q(1, 6)];
 const binPmf = (n: number, p: Q, k: number) => qPow(p, k).mul(qPow(new Q(1).sub(p), n - k)).mul(C(n, k));
 const binTex = (n: number, p: Q, k: number) =>
@@ -1216,7 +1332,7 @@ export const probabilityChapters: Chapter[] = [
     about: 'Expected value and variance, their rules, and the binomial and geometric distributions (which use binomial coefficients).',
     why: 'Expected value is how risks, games, algorithms and insurance are priced; variance is how sure you can be.',
     resources: [grinstead, wiki('Random_variable', 'Random variable'), khanStats],
-    skills: [expectation, binomialDist],
+    skills: [expectation, joint, binomialDist],
     deeper: [indicators, poisson],
   },
   {
