@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { CHAPTER_OF, SKILLS, ALL_SKILLS } from '../content';
 import { isActive, recordAnswer } from '../core/actions';
 import { makeRng } from '../core/rng';
@@ -39,6 +39,8 @@ export function Review({ onExit }: { onExit(): void }) {
   const [right, setRight] = useState(0);
   const [feedback, setFeedback] = useState<ReactNode>(null);
 
+  const upcoming = useRef<Item[] | null>(null);
+
   const current = items[0];
 
   if (!current) {
@@ -71,7 +73,11 @@ export function Review({ onExit }: { onExit(): void }) {
     setFeedback(describeAnswer(current.skillId, before, after, rating, now));
     const rest = items.slice(1);
     if (rating === 'again' && after.due <= now + SOON) rest.splice(Math.min(RETRY_GAP, rest.length), 0, makeItem(current.skillId));
-    setItems(rest);
+    upcoming.current = rest;
+  };
+  const onNext = () => {
+    if (upcoming.current) setItems(upcoming.current);
+    upcoming.current = null;
   };
 
   const total = done + items.length;
@@ -93,6 +99,7 @@ export function Review({ onExit }: { onExit(): void }) {
         level={current.level}
         problem={current.problem}
         onRated={onRated}
+        onNext={onNext}
         banner={feedback}
       />
     </div>

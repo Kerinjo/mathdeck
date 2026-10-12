@@ -103,7 +103,7 @@ export interface Chapter {
   deeper: Skill[];
 }
 
-export type SubjectId = 'calculus' | 'linalg' | 'logic' | 'proofs' | 'discrete' | 'graphs' | 'numtheory';
+export type SubjectId = 'calculus' | 'calculus2' | 'multivar' | 'linalg' | 'logic' | 'proofs' | 'discrete' | 'graphs' | 'numtheory' | 'prob';
 
 export interface Subject {
   id: SubjectId;

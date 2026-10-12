@@ -28,31 +28,30 @@ import {
   type Edge,
   type Graph,
 } from '../core/graph';
-import type { Chapter, Problem, Resource, Rng, Skill } from '../core/types';
+import type { Problem, Resource, Rng, Skill } from '../core/types';
 import { distinct } from './helpers';
-import { directed, pruferCodes } from './cs-deeper';
 
-const levin = (page: string, title: string): Resource => ({
+export const levin = (page: string, title: string): Resource => ({
   kind: 'book',
   title: `Levin, Discrete Mathematics: An Open Introduction: ${title}`,
   url: `https://discrete.openmathbooks.org/dmoi3/${page}.html`,
 });
-const wiki = (page: string, title: string): Resource => ({
+export const wiki = (page: string, title: string): Resource => ({
   kind: 'article',
   title: `Wikipedia: ${title}`,
   url: `https://en.wikipedia.org/wiki/${page}`,
 });
-const mcs: Resource = {
+export const mcs: Resource = {
   kind: 'book',
   title: 'MIT 6.042, Mathematics for Computer Science (free PDF), ch. 12–13: Graphs',
   url: 'https://courses.csail.mit.edu/6.042/spring18/mcs.pdf',
 };
 
-const num = (v: number): Problem['answer'] => ({ kind: 'number', expected: `${v}` });
+export const num = (v: number): Problem['answer'] => ({ kind: 'number', expected: `${v}` });
 const seq = (vs: number[]): Problem['answer'] => ({ kind: 'sequence', expected: vs.map(L) });
-const yesNo = (yes: boolean): Problem['answer'] => ({ kind: 'choice', options: ['Yes', 'No'], correct: yes ? 0 : 1 });
+export const yesNo = (yes: boolean): Problem['answer'] => ({ kind: 'choice', options: ['Yes', 'No'], correct: yes ? 0 : 1 });
 const edgeName = (e: Edge) => `${L(e.u)}${L(e.v)}`;
-const listL = (vs: number[]) => vs.map(L).join(', ');
+export const listL = (vs: number[]) => vs.map(L).join(', ');
 const matPow = (m: number[][], k: number) => {
   let out = m;
   for (let i = 1; i < k; i++) out = out.map((row) => m[0].map((_, j) => row.reduce((s, x, t) => s + x * m[t][j], 0)));
@@ -79,7 +78,7 @@ function havelHakimi(d: number[]): { ok: boolean; steps: string[] } {
   }
 }
 
-const degrees: Skill = {
+export const degrees: Skill = {
   id: 'gt.degrees',
   name: 'Degrees and edges',
   prereqs: [],
@@ -152,7 +151,7 @@ const degrees: Skill = {
   },
 };
 
-const matrices: Skill = {
+export const matrices: Skill = {
   id: 'gt.matrix',
   name: 'Adjacency matrices and walks',
   prereqs: ['gt.degrees'],
@@ -215,7 +214,7 @@ const matrices: Skill = {
 // ---------------------------------------------------------------------------
 // Chapter 2: paths and traversal
 
-const traversal: Skill = {
+export const traversal: Skill = {
   id: 'gt.traversal',
   name: 'BFS, DFS and components',
   prereqs: ['gt.degrees'],
@@ -278,7 +277,7 @@ const traversal: Skill = {
   },
 };
 
-const shortest: Skill = {
+export const shortest: Skill = {
   id: 'gt.shortest',
   name: 'Shortest paths',
   prereqs: ['gt.traversal'],
@@ -345,7 +344,7 @@ const shortest: Skill = {
 
 const EULER_OPTIONS = ['An Euler circuit', 'An Euler path but no circuit', 'Neither'];
 
-const euler: Skill = {
+export const euler: Skill = {
   id: 'gt.euler',
   name: 'Euler and Hamilton',
   prereqs: ['gt.degrees'],
@@ -420,7 +419,7 @@ const euler: Skill = {
 // ---------------------------------------------------------------------------
 // Chapter 3: trees
 
-const trees: Skill = {
+export const trees: Skill = {
   id: 'gt.trees',
   name: 'Trees',
   prereqs: ['gt.degrees'],
@@ -494,7 +493,7 @@ const trees: Skill = {
   },
 };
 
-const mst: Skill = {
+export const mst: Skill = {
   id: 'gt.mst',
   name: 'Minimum spanning trees',
   prereqs: ['gt.trees'],
@@ -553,7 +552,7 @@ const mst: Skill = {
 // ---------------------------------------------------------------------------
 // Chapter 4: colouring, planarity, matching
 
-function randomBipartite(r: Rng, a: number, b: number, density: number): { g: Graph; left: number[]; right: number[] } {
+export function randomBipartite(r: Rng, a: number, b: number, density: number): { g: Graph; left: number[]; right: number[] } {
   const left = [...Array(a).keys()];
   const right = Array.from({ length: b }, (_, i) => a + i);
   for (;;) {
@@ -564,7 +563,7 @@ function randomBipartite(r: Rng, a: number, b: number, density: number): { g: Gr
   }
 }
 
-const coloring: Skill = {
+export const coloring: Skill = {
   id: 'gt.coloring',
   name: 'Graph colouring',
   prereqs: ['gt.degrees'],
@@ -630,7 +629,7 @@ const coloring: Skill = {
   },
 };
 
-const planarity: Skill = {
+export const planarity: Skill = {
   id: 'gt.planar',
   name: 'Planarity',
   prereqs: ['gt.degrees'],
@@ -693,7 +692,7 @@ const planarity: Skill = {
   },
 };
 
-const matching: Skill = {
+export const matching: Skill = {
   id: 'gt.matching',
   name: 'Matchings and flows',
   prereqs: ['gt.coloring'],
@@ -785,44 +784,3 @@ const matching: Skill = {
     resources: [levin('sec_matchings', 'Matching in Bipartite Graphs'), wiki('Max-flow_min-cut_theorem', 'Max-flow min-cut theorem'), mcs],
   },
 };
-
-// ---------------------------------------------------------------------------
-
-export const graphChapters: Chapter[] = [
-  {
-    id: 'gt.ch.basics',
-    title: 'Graph basics',
-    about: 'Vertices, edges and degrees, the handshake lemma, special graphs, and adjacency matrices.',
-    why: 'Graphs model networks, dependencies, state machines and social connections; the adjacency matrix connects them to linear algebra.',
-    resources: [levin('sec_gt-intro', 'Graph Theory: Definitions'), mcs],
-    skills: [degrees, matrices],
-    deeper: [],
-  },
-  {
-    id: 'gt.ch.paths',
-    title: 'Paths and traversal',
-    about: 'Breadth-first and depth-first search, components, shortest paths with Dijkstra, Euler and Hamilton tours.',
-    why: 'Graph search is the backbone of routing, crawling, puzzle solving and dependency resolution.',
-    resources: [wiki('Breadth-first_search', 'Breadth-first search'), wiki('Dijkstra%27s_algorithm', "Dijkstra's algorithm"), levin('sec_paths', 'Euler Paths and Circuits')],
-    skills: [traversal, shortest, euler],
-    deeper: [directed],
-  },
-  {
-    id: 'gt.ch.trees',
-    title: 'Trees',
-    about: 'Characterisations of trees, counting leaves and spanning trees, and minimum spanning trees with Kruskal and Prim.',
-    why: 'Trees are everywhere in computing: file systems, parse trees, heaps, and cheapest-network design.',
-    resources: [levin('sec_trees', 'Trees'), wiki('Minimum_spanning_tree', 'Minimum spanning tree')],
-    skills: [trees, mst],
-    deeper: [pruferCodes],
-  },
-  {
-    id: 'gt.ch.structure',
-    title: 'Colouring, planarity and matching',
-    about: 'Chromatic numbers and bipartite graphs, planar graphs and Euler’s formula, matchings and network flows.',
-    why: 'Scheduling, register allocation, circuit layout, assignment problems and network capacity all reduce to these questions.',
-    resources: [levin('sec_coloring', 'Coloring'), levin('sec_planar', 'Planar Graphs'), levin('sec_matchings', 'Matching in Bipartite Graphs')],
-    skills: [coloring, planarity, matching],
-    deeper: [],
-  },
-];

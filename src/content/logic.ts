@@ -743,11 +743,11 @@ const validity: Skill = {
 };
 
 const STORIES = [
-  { p: 'it rains', np: 'it does not rain', q: 'the street is wet', nq: 'the street is not wet', r: 'cars slow down' },
-  { p: 'the code compiles', np: 'the code does not compile', q: 'the tests run', nq: 'the tests do not run', r: 'the build is green' },
-  { p: 'n is divisible by 4', np: 'n is not divisible by 4', q: 'n is even', nq: 'n is odd', r: 'n² is even' },
-  { p: 'the server is down', np: 'the server is up', q: 'the site is unreachable', nq: 'the site is reachable', r: 'users complain' },
-  { p: 'Ana studies', np: 'Ana does not study', q: 'Ana passes', nq: 'Ana does not pass', r: 'Ana graduates' },
+  { p: 'it rains', np: 'it does not rain', q: 'the street is wet', nq: 'the street is not wet', r: 'cars slow down', nr: 'cars do not slow down' },
+  { p: 'the code compiles', np: 'the code does not compile', q: 'the tests run', nq: 'the tests do not run', r: 'the build is green', nr: 'the build is not green' },
+  { p: 'n is divisible by 4', np: 'n is not divisible by 4', q: 'n is even', nq: 'n is odd', r: 'n² is even', nr: 'n² is odd' },
+  { p: 'the server is down', np: 'the server is up', q: 'the site is unreachable', nq: 'the site is reachable', r: 'users complain', nr: 'users do not complain' },
+  { p: 'Ana studies', np: 'Ana does not study', q: 'Ana passes', nq: 'Ana does not pass', r: 'Ana graduates', nr: 'Ana does not graduate' },
 ];
 
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
@@ -791,6 +791,26 @@ const rules: Skill = {
             `Strip it down to letters ($p$ = "${s.p}", $q$ = "${s.q}") and compare with the standard forms.`,
             `It is ${name.toLowerCase()}, which is ${valid ? 'valid' : 'a fallacy'}.`,
           ],
+        };
+      },
+    },
+    {
+      name: 'what follows?',
+      generate(r) {
+        const s = r.pick(STORIES);
+        const nothing = `Nothing follows about whether ${s.p}`;
+        const T = [
+          { prem: [`If ${s.p}, then ${s.q}.`, `If ${s.q}, then ${s.r}.`, `${cap(s.p)}.`], good: s.r, bad: [s.nr, s.np, nothing], why: 'Chain the implications to "if p then r" (hypothetical syllogism), then modus ponens with p.' },
+          { prem: [`If ${s.p}, then ${s.q}.`, `If ${s.q}, then ${s.r}.`, `${cap(s.nr)}.`], good: s.np, bad: [s.p, s.q, nothing], why: 'Chain to "if p then r", then modus tollens: not r gives not p.' },
+          { prem: [`Either ${s.p} or ${s.q}.`, `If ${s.p}, then ${s.r}.`, `${cap(s.nr)}.`], good: s.q, bad: [s.p, s.nq, s.r], why: 'Modus tollens: not r gives not p. Then disjunctive syllogism with "p or q" gives q.' },
+          { prem: [`If ${s.p}, then ${s.q}.`, `${cap(s.q)}.`], good: nothing, bad: [s.p, s.np, s.r], why: 'Concluding p would be affirming the consequent, and q being true is consistent with p either way.' },
+        ];
+        const t = r.pick(T);
+        const options = r.shuffle([t.good, ...t.bad].map(cap));
+        return {
+          prompt: `Premises: “${t.prem.join(' ')}” Which conclusion follows validly?`,
+          answer: { kind: 'choice', options, correct: options.indexOf(cap(t.good)) },
+          solution: [`Let $p$ = "${s.p}", $q$ = "${s.q}", $r$ = "${s.r}".`, t.why],
         };
       },
     },

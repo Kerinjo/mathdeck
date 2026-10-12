@@ -454,7 +454,10 @@ nav button.active {
 .prompt {
   font-size: 1.15rem;
   line-height: 1.8;
-  margin-bottom: 1.5rem;
+  /* Scroll boxes clip vertically too: the padding keeps tall math (a displaystyle fraction's
+     denominator) inside the box, and the negative margin cancels it in the layout. */
+  padding: 0.5em 0;
+  margin: -0.5em 0 calc(1.5rem - 0.5em);
   overflow-x: auto;
   overflow-y: hidden;
 }
@@ -485,8 +488,9 @@ nav button.active {
 }
 .preview {
   min-height: 2rem;
-  padding: 0.2rem 0.1rem;
+  padding: 0.4rem 0.1rem;
   overflow-x: auto;
+  overflow-y: hidden;
 }
 .preview-error {
   color: var(--warn);
@@ -592,7 +596,10 @@ nav button.active {
 .expected {
   font-weight: 400;
   margin-left: auto;
+  padding: 0.4em 0;
+  margin-block: -0.4em;
   overflow-x: auto;
+  overflow-y: hidden;
   max-width: 100%;
 }
 .verdict-sub {
@@ -625,9 +632,10 @@ nav button.active {
 }
 .steps {
   margin: 0;
-  padding-left: 1.2rem;
+  padding: 0.4em 0 0.4em 1.2rem;
   line-height: 1.9;
   overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .learn .summary {
@@ -1069,25 +1077,40 @@ h1 {
   fill: none;
   stroke: var(--muted);
   stroke-width: 1.5;
-  opacity: 0.7;
+  opacity: 0.45;
+  transition: opacity 0.15s, stroke 0.15s;
+}
+.map-edge.hot {
+  stroke: var(--accent);
+  opacity: 1;
 }
 .map-arrowhead {
-  fill: var(--muted);
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.map-arrowhead.hot {
+  stroke: var(--accent);
 }
 .map-node {
   cursor: pointer;
 }
-.map-node > rect:first-child {
+.map-card {
   fill: var(--surface-2);
   stroke: var(--border);
   stroke-width: 1;
   transition: stroke 0.15s;
 }
-.map-node:hover > rect:first-child,
-.map-node:focus-visible > rect:first-child,
-.map-node.selected > rect:first-child {
+.map-node:hover .map-card,
+.map-node:focus-visible .map-card,
+.map-node.selected .map-card {
   stroke: var(--accent);
   stroke-width: 1.5;
+}
+.map-node.done .map-card {
+  stroke: var(--s-mastered);
 }
 .map-node:focus {
   outline: none;
@@ -1097,15 +1120,23 @@ h1 {
   font-size: 14px;
   font-weight: 600;
 }
+.subject-map.narrow .map-title {
+  font-size: 13px;
+}
+.map-meta {
+  fill: var(--muted);
+  font-size: 11px;
+}
 .map-track {
-  fill: var(--bg);
+  fill: var(--border);
 }
 .map-fill {
   fill: var(--s-cleared);
 }
 .map-pct {
-  fill: var(--muted);
+  fill: var(--s-cleared);
   font-size: 11px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1255,6 +1286,99 @@ h1 {
   .ol-deeper-label {
     padding-left: 1.6rem;
   }
+}
+
+/* ---- insight: weak spots and section history ---- */
+
+.weak-list {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+.weak-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.weak-meter {
+  flex: none;
+  width: 6px;
+  height: 2.2rem;
+  border-radius: 3px;
+  background: var(--surface-2);
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+.weak-meter i {
+  display: block;
+  width: 100%;
+  background: var(--rc);
+}
+.weak-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.6rem;
+  row-gap: 0.1rem;
+}
+.weak-name {
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+}
+.weak-why {
+  flex-basis: 100%;
+  color: var(--rc);
+}
+.weak-row.r-hard .weak-why {
+  color: var(--muted);
+}
+
+.history {
+  display: grid;
+  gap: 0.4rem;
+}
+.history-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 7px;
+}
+.history-day {
+  display: inline-flex;
+  gap: 2px;
+}
+.hmark {
+  display: inline-block;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--hc);
+  border: 1.5px solid var(--hc);
+  vertical-align: -2px;
+}
+.history-legend .hmark {
+  width: 8px;
+  height: 10px;
+  vertical-align: -1px;
+}
+.h-again { --hc: var(--bad); }
+.h-slip { --hc: var(--warn); background: transparent; }
+.h-hinted { --hc: var(--warn); }
+.h-hard { --hc: var(--hm3); }
+.h-good { --hc: var(--ok); }
+.h-easy { --hc: var(--accent); }
+.history-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.9rem;
+  color: var(--muted);
 }
 
 /* ---- graph figures ---- */

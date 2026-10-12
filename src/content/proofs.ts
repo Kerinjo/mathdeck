@@ -1,49 +1,48 @@
 import { Q } from '../core/frac';
 import { coef, mono, poly, signed, st, sum, t } from '../core/fmt';
-import type { Chapter, Problem, Resource, Rng, Skill } from '../core/types';
+import type { Problem, Resource, Rng, Skill } from '../core/types';
 import { distinct, fact } from './helpers';
-import { pigeonhole, structural } from './logic-deeper';
 
 // Every card here is self-rated: prove it on paper, reveal the model proof, then rate how it went.
 // Statements come in families with varying numbers, and the model proofs are written out for each.
 
-const levin = (page: string, title: string): Resource => ({
+export const levin = (page: string, title: string): Resource => ({
   kind: 'book',
   title: `Levin, Discrete Mathematics: An Open Introduction: ${title}`,
   url: `https://discrete.openmathbooks.org/dmoi3/${page}.html`,
 });
-const bookOfProof: Resource = {
+export const bookOfProof: Resource = {
   kind: 'book',
   title: 'Hammack, Book of Proof (free textbook)',
   url: 'https://richardhammack.github.io/BookOfProof/',
 };
-const mcs: Resource = {
+export const mcs: Resource = {
   kind: 'book',
   title: 'MIT 6.042, Mathematics for Computer Science (free PDF), ch. 1 and 5',
   url: 'https://courses.csail.mit.edu/6.042/spring18/mcs.pdf',
 };
-const wiki = (page: string, title: string): Resource => ({
+export const wiki = (page: string, title: string): Resource => ({
   kind: 'article',
   title: `Wikipedia: ${title}`,
   url: `https://en.wikipedia.org/wiki/${page}`,
 });
 
-const prove = (statement: string, proof: string[], selfCheck?: () => boolean): Problem => ({
+export const prove = (statement: string, proof: string[], selfCheck?: () => boolean): Problem => ({
   prompt: `Prove: ${statement}`,
   answer: { kind: 'self' },
   solution: proof,
   selfCheck,
 });
 
-const range = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
-const mod = (a: number, m: number) => ((a % m) + m) % m;
+export const range = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+export const mod = (a: number, m: number) => ((a % m) + m) % m;
 const parity = (x: number) => (mod(x, 2) === 0 ? 'even' : 'odd');
 const gcd = (a: number, b: number): number => (b === 0 ? Math.abs(a) : gcd(b, a % b));
 
 // ---------------------------------------------------------------------------
 // Chapter 1: direct proof
 
-const direct: Skill = {
+export const direct: Skill = {
   id: 'proofs.direct',
   name: 'Direct proof',
   prereqs: [],
@@ -138,7 +137,7 @@ const direct: Skill = {
 // ---------------------------------------------------------------------------
 // Chapter 2: indirect proof
 
-const contrapositive: Skill = {
+export const contrapositive: Skill = {
   id: 'proofs.contra',
   name: 'Proof by contrapositive',
   prereqs: ['proofs.direct'],
@@ -225,7 +224,7 @@ const contrapositive: Skill = {
 
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
 
-const contradiction: Skill = {
+export const contradiction: Skill = {
   id: 'proofs.contradiction',
   name: 'Proof by contradiction',
   prereqs: ['proofs.direct'],
@@ -396,7 +395,7 @@ function sumFamily(r: Rng): { from: number; lhs: string; rhs: string; proof: str
   };
 }
 
-const induction: Skill = {
+export const induction: Skill = {
   id: 'proofs.induction',
   name: 'Mathematical induction',
   prereqs: ['proofs.direct'],
@@ -465,7 +464,7 @@ const FIB = (() => {
   return f;
 })();
 
-const strong: Skill = {
+export const strong: Skill = {
   id: 'proofs.strong',
   name: 'Strong induction',
   prereqs: ['proofs.induction'],
@@ -568,7 +567,7 @@ const strong: Skill = {
 // ---------------------------------------------------------------------------
 // Chapter 4: sets and functions
 
-const setProofs: Skill = {
+export const setProofs: Skill = {
   id: 'proofs.sets',
   name: 'Proofs about sets',
   prereqs: ['proofs.direct'],
@@ -680,7 +679,7 @@ const setProofs: Skill = {
   },
 };
 
-const functions: Skill = {
+export const functions: Skill = {
   id: 'proofs.functions',
   name: 'Injective, surjective, bijective',
   prereqs: ['proofs.direct'],
@@ -754,45 +753,3 @@ const functions: Skill = {
     resources: [levin('sec_intro-functions', 'Functions'), wiki('Bijection,_injection_and_surjection', 'Bijection, injection and surjection'), bookOfProof],
   },
 };
-
-// ---------------------------------------------------------------------------
-
-export const proofsChapters: Chapter[] = [
-  {
-    id: 'proofs.ch.direct',
-    title: 'Direct proof',
-    about: 'Proving "if $P$ then $Q$" by assuming $P$ and computing: parity, divisibility, sums and simple inequalities.',
-    why: 'Most proofs you will ever write are direct. Getting fluent with definitions (even, divides, remainder) is most of the work.',
-    resources: [bookOfProof, levin('sec_logic-proofs', 'Proofs'), mcs],
-    skills: [direct],
-    deeper: [],
-  },
-  {
-    id: 'proofs.ch.indirect',
-    title: 'Contrapositive and contradiction',
-    about: 'Proving a statement through its contrapositive, or by assuming it fails and deriving something impossible.',
-    why: 'Irrationality, infinitude of primes, impossibility results and lower bounds in computer science are all proofs by contradiction.',
-    resources: [bookOfProof, wiki('Proof_by_contradiction', 'Proof by contradiction'), wiki('Contraposition', 'Contraposition')],
-    skills: [contrapositive, contradiction],
-    deeper: [pigeonhole],
-  },
-  {
-    id: 'proofs.ch.induction',
-    title: 'Induction',
-    about: 'Ordinary induction for sums, divisibility and inequalities; strong induction for factorisations, coins and Fibonacci numbers.',
-    why: 'Induction is how you prove loops and recursive algorithms correct and analyse their running time.',
-    resources: [levin('sec_seq-induction', 'Proof by Induction'), wiki('Mathematical_induction', 'Mathematical induction'), mcs],
-    skills: [induction, strong],
-    deeper: [structural],
-  },
-  {
-    id: 'proofs.ch.sets',
-    title: 'Sets and functions',
-    about: 'Element-chasing proofs of subset and equality statements, and proofs that functions are injective, surjective or bijective.',
-    why: 'Counting arguments (bijections) and almost every definition in discrete maths and algebra rely on these proof patterns.',
-    resources: [levin('sec_intro-sets', 'Sets'), levin('sec_intro-functions', 'Functions'), bookOfProof],
-    skills: [setProofs, functions],
-    deeper: [],
-  },
-];
-

@@ -20,13 +20,12 @@ import {
   type Mat,
 } from '../core/frac';
 import { coef, signed, sum, t } from '../core/fmt';
-import type { Chapter, Problem, Rng, Skill } from '../core/types';
+import type { Problem, Rng, Skill } from '../core/types';
 import { distinct } from './helpers';
-import { changeOfBasis, cramer, lu, planes, projections, singularValues } from './linalg-deeper';
 import { ila, isZeroVec, matrixAns, maxAbs, num, P, randMat, randVec, strang, tb1b, unimodular, vecAns } from './la-helpers';
 
 /** A random matrix whose RREF has small integer entries: pick the RREF, then scramble rows. */
-function withNiceRref(r: Rng, rows: number, cols: number, rk: number): { a: Mat; R: Mat; pivots: number[] } {
+export function withNiceRref(r: Rng, rows: number, cols: number, rk: number): { a: Mat; R: Mat; pivots: number[] } {
   for (;;) {
     // Pivot in column 1 always: a leading zero column makes for a dull problem.
     const pivots = [0, ...distinct(r, rk - 1, 1, cols - 1)].sort((x, y) => x - y);
@@ -42,7 +41,7 @@ function withNiceRref(r: Rng, rows: number, cols: number, rk: number): { a: Mat;
 
 // ---------------------------------------------------------------------------
 
-const vectors: Skill = {
+export const vectors: Skill = {
   id: 'la.vectors',
   name: 'Vector arithmetic',
   prereqs: [],
@@ -112,7 +111,7 @@ const vectors: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const geometry: Skill = {
+export const geometry: Skill = {
   id: 'la.geometry',
   name: 'Length, angle and projection',
   prereqs: ['la.vectors'],
@@ -191,7 +190,7 @@ const geometry: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const matmul: Skill = {
+export const matmul: Skill = {
   id: 'la.matmul',
   name: 'Matrix multiplication',
   prereqs: ['la.vectors'],
@@ -228,7 +227,7 @@ function product(r: Rng, m: number, n: number, p: number, lo = -4, hi = 4): Prob
 
 // ---------------------------------------------------------------------------
 
-const systems: Skill = {
+export const systems: Skill = {
   id: 'la.systems',
   name: 'Solving linear systems',
   prereqs: ['la.vectors'],
@@ -295,7 +294,7 @@ function solveSystem(r: Rng, n: number): Problem {
 
 // ---------------------------------------------------------------------------
 
-const rrefSkill: Skill = {
+export const rrefSkill: Skill = {
   id: 'la.rref',
   name: 'Reduced row echelon form',
   prereqs: ['la.systems'],
@@ -327,7 +326,7 @@ function rrefProblem(r: Rng, rows: number, cols: number, rk: number): Problem {
 
 // ---------------------------------------------------------------------------
 
-const determinant: Skill = {
+export const determinant: Skill = {
   id: 'la.det',
   name: 'Computing determinants',
   prereqs: ['la.matmul'],
@@ -373,7 +372,7 @@ function detProblem(r: Rng, n: number, lo: number, hi: number, zeros = 0): Probl
 
 // ---------------------------------------------------------------------------
 
-const detProps: Skill = {
+export const detProps: Skill = {
   id: 'la.detprops',
   name: 'Determinant properties',
   prereqs: ['la.det'],
@@ -451,7 +450,7 @@ const detProps: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const inverseSkill: Skill = {
+export const inverseSkill: Skill = {
   id: 'la.inverse',
   name: 'Matrix inverse',
   prereqs: ['la.matmul', 'la.rref'],
@@ -521,7 +520,7 @@ const inverseSkill: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const independence: Skill = {
+export const independence: Skill = {
   id: 'la.independence',
   name: 'Span, independence and coordinates',
   prereqs: ['la.rref'],
@@ -607,7 +606,7 @@ const independence: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const rankSkill: Skill = {
+export const rankSkill: Skill = {
   id: 'la.rank',
   name: 'Rank and null space',
   prereqs: ['la.rref'],
@@ -699,7 +698,7 @@ function namedTransform(r: Rng): { name: string; m: Mat } {
   return { name: `scaling by $${a}$ in $x$ and $${b}$ in $y$`, m: mat([[a, 0], [0, b]]) };
 }
 
-const transforms: Skill = {
+export const transforms: Skill = {
   id: 'la.transform',
   name: 'Matrices of linear transformations',
   prereqs: ['la.matmul'],
@@ -775,18 +774,22 @@ const transforms: Skill = {
 /** A = P D P⁻¹ with integer P (det 1) and distinct integer eigenvalues. */
 function diagonalizable(r: Rng, n: number, bound: number) {
   for (;;) {
-    const P = unimodular(r, n, n + 1, 2);
+    // 3×3 needs more mixing, or A comes out nearly block-triangular and the cubic factors at sight.
+    const P = unimodular(r, n, n === 3 ? 6 : n + 1, 2);
     const ev = distinct(r, n, -4, 5);
     const D = mat(Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? ev[i] : 0))));
     const A = matMul(matMul(P, D), inverse(P));
-    if (maxAbs(A) <= bound && !isIdentity(P)) return { A, P, ev };
+    // A triangular A gives its eigenvalues away on the diagonal.
+    const triangular = (M: Mat) => M.every((row, i) => row.every((x, j) => j <= i || x.isZero())) || M.every((row, i) => row.every((x, j) => j >= i || x.isZero()));
+    const sparse = n === 3 && A.flat().filter((x) => x.isZero()).length > 2;
+    if (maxAbs(A) <= bound && !isIdentity(P) && !triangular(A) && !sparse) return { A, P, ev };
   }
 }
 
 const charPoly2 = (A: Mat) =>
   sum([t(1, '\\lambda^2'), t(A[0][0].add(A[1][1]).neg(), '\\lambda'), t(det(A))]).tex;
 
-const eigen: Skill = {
+export const eigen: Skill = {
   id: 'la.eigen',
   name: 'Eigenvalues and eigenvectors',
   prereqs: ['la.det'],
@@ -810,7 +813,7 @@ const eigen: Skill = {
     {
       name: '3×3 eigenvalues',
       generate(r) {
-        const { A, ev } = diagonalizable(r, 3, 14);
+        const { A, ev } = diagonalizable(r, 3, 16);
         return {
           prompt: `Find the eigenvalues of $${matTex(A)}$.`,
           answer: { kind: 'list', expected: ev.map(String) },
@@ -862,7 +865,7 @@ const eigen: Skill = {
 
 // ---------------------------------------------------------------------------
 
-const orthogonal: Skill = {
+export const orthogonal: Skill = {
   id: 'la.orthogonal',
   name: 'Gram–Schmidt and least squares',
   prereqs: ['la.geometry', 'la.systems'],
@@ -977,7 +980,7 @@ function symmetricWithClass(r: Rng, n: number) {
   return { A, cls, D };
 }
 
-const definiteness: Skill = {
+export const definiteness: Skill = {
   id: 'la.definite',
   name: 'Quadratic forms and definiteness',
   prereqs: ['la.eigen'],
@@ -1053,7 +1056,7 @@ const definiteness: Skill = {
 const matPow = (a: Mat, k: number): Mat => (k === 0 ? identity(a.length) : matMul(a, matPow(a, k - 1)));
 const diagMat = (d: number[]) => mat(d.map((x, i) => d.map((_, j) => (i === j ? x : 0))));
 
-const diagonalization: Skill = {
+export const diagonalization: Skill = {
   id: 'la.diagpow',
   name: 'Diagonalization and matrix powers',
   prereqs: ['la.eigen'],
@@ -1143,71 +1146,3 @@ const diagonalization: Skill = {
     ],
   },
 };
-
-// ---------------------------------------------------------------------------
-
-export const linalgChapters: Chapter[] = [
-  {
-    id: 'la.ch.vectors',
-    title: 'Vectors',
-    about: 'Vectors as arrows and as lists of numbers: adding, scaling, dot and cross products, lengths, angles and projections.',
-    why: 'Everything in linear algebra is built on vectors. In computing they are points, colours, feature vectors and embeddings; the dot product is how similarity is measured.',
-    resources: [tb1b('vectors', 'Vectors, what even are they?'), ila('vectors', 'Vectors'), { kind: 'interactive', title: 'Immersive Linear Algebra: Vectors', url: 'http://immersivemath.com/ila/ch02_vectors/ch02.html' }],
-    skills: [vectors, geometry],
-    deeper: [planes],
-  },
-  {
-    id: 'la.ch.systems',
-    title: 'Linear systems',
-    about: 'Solving systems of linear equations by row reduction, and the reduced row echelon form that summarises them.',
-    why: 'Row reduction is the workhorse algorithm of the subject: almost every later question (inverse, rank, null space, independence) is answered by row reducing something.',
-    resources: [ila('systems-of-eqns', 'Systems of Linear Equations'), ila('row-reduction', 'Row Reduction'), strang],
-    skills: [systems, rrefSkill],
-    deeper: [],
-  },
-  {
-    id: 'la.ch.matrices',
-    title: 'Matrices and linear maps',
-    about: 'Matrix multiplication, inverses, and matrices as transformations of space (rotations, reflections, shears).',
-    why: 'Matrices are how graphics engines move objects, how neural network layers work, and how systems of equations are solved in one step.',
-    resources: [tb1b('linear-transformations', 'Linear transformations and matrices'), tb1b('matrix-multiplication', 'Matrix multiplication as composition'), ila('matrix-multiplication', 'Matrix Multiplication')],
-    skills: [matmul, inverseSkill, transforms],
-    deeper: [lu],
-  },
-  {
-    id: 'la.ch.determinants',
-    title: 'Determinants',
-    about: 'Computing determinants and the rules for how they behave under products, inverses and row operations.',
-    why: 'The determinant tells you at a glance whether a matrix is invertible and how much it scales area or volume (which is why it appears in change of variables).',
-    resources: [tb1b('determinant', 'The determinant'), ila('determinants-definitions-properties', 'Determinants: Definition')],
-    skills: [determinant, detProps],
-    deeper: [cramer],
-  },
-  {
-    id: 'la.ch.spaces',
-    title: 'Vector spaces',
-    about: 'Span, linear independence, bases and coordinates, rank and null space.',
-    why: 'These ideas explain when a system has a unique solution, how many degrees of freedom data really has, and what a "basis" or "dimension" means.',
-    resources: [tb1b('span', 'Linear combinations, span, and basis vectors'), tb1b('inverse-matrices', 'Inverse matrices, column space and null space'), ila('linear-independence', 'Linear Independence')],
-    skills: [independence, rankSkill],
-    deeper: [changeOfBasis],
-  },
-  {
-    id: 'la.ch.eigen',
-    title: 'Eigenvalues',
-    about: 'Eigenvalues and eigenvectors, and what they say about a matrix, including when a symmetric matrix is positive definite.',
-    why: 'Eigenvectors are the directions a transformation only stretches. They drive PageRank, PCA, stability analysis and the second-derivative test in many variables.',
-    resources: [tb1b('eigenvalues', 'Eigenvectors and eigenvalues'), ila('eigenvectors', 'Eigenvalues and Eigenvectors'), strang],
-    skills: [eigen, definiteness],
-    deeper: [diagonalization, singularValues],
-  },
-  {
-    id: 'la.ch.orthogonality',
-    title: 'Orthogonality',
-    about: 'Orthogonal projections, Gram–Schmidt, and least squares for systems with no exact solution.',
-    why: 'Least squares is linear regression. Orthogonal bases make computations numerically stable and are the basis of QR decomposition.',
-    resources: [ila('projections', 'Orthogonal Projection'), ila('least-squares', 'The Method of Least Squares'), strang],
-    skills: [orthogonal],
-    deeper: [projections],
-  },
-];

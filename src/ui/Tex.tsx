@@ -1,11 +1,12 @@
 import katex from 'katex';
 import { useMemo } from 'react';
+import { tidyTex } from '../core/tidy';
 
 const escape = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 const tex = (src: string, displayMode: boolean) =>
-  katex.renderToString(src, { throwOnError: false, displayMode, strict: false });
+  katex.renderToString(tidyTex(src), { throwOnError: false, displayMode, strict: false });
 
 /** Render text with inline $...$ and display $$...$$ math. */
 export function renderMixed(text: string): string {

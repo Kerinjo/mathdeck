@@ -1,20 +1,26 @@
 import type { Chapter, Skill, Subject } from '../core/types';
-import { calculusChapters } from './calculus';
-import { discreteChapters } from './discrete';
-import { graphChapters } from './graphs';
-import { linalgChapters } from './linalg';
+import { calculus1Chapters } from './calc1';
+import { calculus2Chapters } from './calc2';
+import { multivariableChapters } from './calc3';
+import { discreteChapters } from './discrete-more';
+import { graphChapters } from './graphs-more';
+import { linalgChapters } from './linalg-more';
 import { logicChapters } from './logic';
-import { numberTheoryChapters } from './numtheory';
-import { proofsChapters } from './proofs';
+import { numberTheoryChapters } from './numtheory-more';
+import { probabilityChapters } from './prob';
+import { proofsChapters } from './proofs-more';
 
 export const SUBJECTS: Subject[] = [
-  { id: 'calculus', name: 'Calculus', blurb: 'Limits, derivatives, integrals, series', requires: [], chapters: calculusChapters },
+  { id: 'calculus', name: 'Calculus I', blurb: 'Limits, continuity, derivatives and their applications', requires: [], chapters: calculus1Chapters },
+  { id: 'calculus2', name: 'Calculus II', blurb: 'Integration, its applications, series, differential equations', requires: ['calculus'], chapters: calculus2Chapters },
+  { id: 'multivar', name: 'Multivariable Calculus', blurb: 'Partial derivatives, multiple integrals, vector calculus', requires: ['calculus2'], chapters: multivariableChapters },
   { id: 'linalg', name: 'Linear Algebra', blurb: 'Vectors, matrices, eigenvalues', requires: [], chapters: linalgChapters },
   { id: 'logic', name: 'Logic', blurb: 'Connectives, equivalence, quantifiers, arguments', requires: [], chapters: logicChapters },
   { id: 'proofs', name: 'Proofs', blurb: 'Direct, contradiction, induction, sets and functions', requires: ['logic'], chapters: proofsChapters },
   { id: 'discrete', name: 'Discrete Math', blurb: 'Sets, counting, recurrences, Big-O', requires: ['proofs'], chapters: discreteChapters },
   { id: 'graphs', name: 'Graph Theory', blurb: 'Search, shortest paths, trees, colouring, flows', requires: ['discrete'], chapters: graphChapters },
   { id: 'numtheory', name: 'Number Theory', blurb: 'Primes, gcd, modular arithmetic, RSA', requires: ['discrete'], chapters: numberTheoryChapters },
+  { id: 'prob', name: 'Probability & Statistics', blurb: 'Bayes, distributions, the normal curve, confidence intervals', requires: [], chapters: probabilityChapters },
 ];
 
 export const SUBJECT_BY_ID = Object.fromEntries(SUBJECTS.map((s) => [s.id, s])) as Record<string, Subject>;

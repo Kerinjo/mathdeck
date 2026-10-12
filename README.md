@@ -50,6 +50,10 @@ Everything else:
 - **Subjects page**: a map of how the subjects build on each other, and below it an outline of every subject,
   chapter and section, each with its progress and a Study button. Expand a section for its levels, practice and
   intro; ⓘ on a chapter shows its optional "About".
+- **Progress insight** (`src/core/insight.ts`): expanding a section shows its full history, one mark per answer
+  grouped by day and coloured by your rating. The Today page lists **weak spots**: sections whose recent answers
+  (latest counting most) show trouble, each with the reason: didn't know how, needed hints, slips or felt hard. Slips
+  weigh little, and a section drops off the list once you get it right again.
 - **Nothing is locked.** Open any chapter at any time. "I already know this" (for a section or a whole chapter)
   marks it cleared, and it gets checked at its top level in a review 3 days later.
 - **Learning material is optional.** Every chapter has an *About this chapter* panel (what it covers, why it matters,
@@ -92,18 +96,22 @@ difference quotients); and whole-number answers must match exactly.
 
 ## Content
 
-Seven subjects. The Subjects page shows how they build on each other: Logic → Proofs → Discrete Math → Graph Theory
-and Number Theory; Calculus and Linear Algebra stand on their own.
+Ten subjects. The Subjects page shows how they build on each other: Calculus I → Calculus II → Multivariable Calculus;
+Logic → Proofs → Discrete Math → Graph Theory and Number Theory; Linear Algebra and Probability & Statistics stand on
+their own (probability borrows only a little counting and a few integrals, noted where they come up).
 
 | Subject | Chapters | Going deeper (optional) |
 |---|---|---|
-| **Calculus** | Limits · Derivatives · Applications of derivatives · Integrals · Series · Multivariable | ε–δ · inverse functions and logarithmic differentiation · related rates and optimisation · improper integrals · trigonometric integrals · summing power series · directional derivatives and Lagrange multipliers |
-| **Linear Algebra** | Vectors · Linear systems · Matrices and linear maps · Determinants · Vector spaces · Eigenvalues · Orthogonality | lines and planes · LU decomposition · areas, volumes and Cramer's rule · change of basis · diagonalization · singular values · projection and orthogonal matrices |
+| **Calculus I** | Limits and continuity · Derivatives · Applications of derivatives | ε–δ · inverse functions and logarithmic differentiation |
+| **Calculus II** | Integrals · Integration techniques · Applications of integration · Sequences and series · Differential equations | numerical integration · summing power series · second-order linear equations |
+| **Multivariable Calculus** | Partial derivatives · Multiple integrals · Vector calculus | change of variables (Jacobians) |
+| **Linear Algebra** | Vectors · Linear systems · Matrices and linear maps · Determinants · Vector spaces · Eigenvalues · Orthogonality | lines and planes · applications (chemical equations, interpolation, input–output) · LU decomposition · areas, volumes and Cramer's rule · change of basis · abstract vector spaces · diagonalization · singular values · projection and orthogonal matrices |
 | **Logic** | Propositions and connectives · Equivalence and normal forms · Quantifiers · Arguments | satisfiability · translating English into logic |
-| **Proofs** | Direct proof · Contrapositive and contradiction · Induction · Sets and functions (self-rated, with model proofs) | pigeonhole proofs · structural induction |
-| **Discrete Math** | Sets, functions and relations · Counting · Recurrences · Asymptotics | countability · derangements, Catalan and Stirling numbers · divide-and-conquer recurrences |
-| **Graph Theory** | Graph basics · Paths and traversal · Trees · Colouring, planarity and matching (with drawn graphs) | directed graphs (topological sort, strong components) · Prüfer codes |
-| **Number Theory** | Divisibility · Modular arithmetic · Fermat, Euler and RSA | orders, primitive roots and square roots · Diffie–Hellman and discrete logs |
+| **Proofs** | Direct proof (with proof by cases and counterexamples) · Contrapositive and contradiction · Induction · Sets and functions (self-rated, with model proofs) | pigeonhole proofs · structural induction |
+| **Discrete Math** | Sets, functions and relations (with partial orders) · Counting (with binomial identities) · Recurrences (with setting them up) · Asymptotics (with counting loop iterations) | countability · derangements, Catalan and Stirling numbers · generating functions · divide-and-conquer recurrences |
+| **Graph Theory** | Graph basics (with isomorphism) · Paths and traversal (with distances and connectivity) · Trees · Colouring, planarity and matching (with cliques, independent sets and covers; drawn graphs throughout) | directed graphs (topological sort, strong components) · Prüfer codes · extremal graphs and Ramsey theory |
+| **Number Theory** | Divisibility (primes, gcd, divisibility rules, Diophantine equations, number bases) · Modular arithmetic · Fermat, Euler and RSA | arithmetic functions · check digits and calendars · orders, primitive roots and square roots · Diffie–Hellman and discrete logs |
+| **Probability & Statistics** | Probability basics · Conditional probability · Random variables (with joint distributions and covariance) · Continuous distributions · Statistics | Markov chains · linearity of expectation · Poisson · Markov and Chebyshev bounds · hypothesis tests |
 
 Answer types: expressions, numbers, lists, sets, matrices/vectors, logical formulas (any equivalent formula, optionally
 in a required shape such as CNF), vertex sequences, multiple choice, and self-rated proofs.

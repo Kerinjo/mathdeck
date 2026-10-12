@@ -48,10 +48,8 @@ export function Practice({ skillId, level, onExit }: { skillId: string; level: n
         skill={skill}
         level={lvl}
         problem={problem}
-        onRated={(r) => {
-          setScore((s) => ({ right: s.right + (solved(r) ? 1 : 0), total: s.total + 1 }));
-          next();
-        }}
+        onRated={(r) => setScore((s) => ({ right: s.right + (solved(r) ? 1 : 0), total: s.total + 1 }))}
+        onNext={() => next()}
       />
     </div>
   );

@@ -1,28 +1,27 @@
 import { coef, poly, st, sum, t } from '../core/fmt';
-import type { Chapter, Problem, Resource, Rng, Skill } from '../core/types';
+import type { Problem, Resource, Rng, Skill } from '../core/types';
 import { distinct, fact } from './helpers';
-import { countability, divideConquer, specialNumbers } from './cs-deeper';
 
-const levin = (page: string, title: string): Resource => ({
+export const levin = (page: string, title: string): Resource => ({
   kind: 'book',
   title: `Levin, Discrete Mathematics: An Open Introduction: ${title}`,
   url: `https://discrete.openmathbooks.org/dmoi3/${page}.html`,
 });
-const wiki = (page: string, title: string): Resource => ({
+export const wiki = (page: string, title: string): Resource => ({
   kind: 'article',
   title: `Wikipedia: ${title}`,
   url: `https://en.wikipedia.org/wiki/${page}`,
 });
-const mcs: Resource = {
+export const mcs: Resource = {
   kind: 'book',
   title: 'MIT 6.042, Mathematics for Computer Science (free PDF)',
   url: 'https://courses.csail.mit.edu/6.042/spring18/mcs.pdf',
 };
 
-const fmtN = (n: number) => n.toLocaleString('en-US').replace(/,/g, '{,}');
-const C = (n: number, k: number): number => (k < 0 || k > n ? 0 : Math.round(fact(n) / (fact(k) * fact(n - k))));
-const P = (n: number, k: number): number => (k > n ? 0 : Math.round(fact(n) / fact(n - k)));
-const num = (v: number | string, display?: string): Problem['answer'] => ({
+export const fmtN = (n: number) => n.toLocaleString('en-US').replace(/,/g, '{,}');
+export const C = (n: number, k: number): number => (k < 0 || k > n ? 0 : Math.round(fact(n) / (fact(k) * fact(n - k))));
+export const P = (n: number, k: number): number => (k > n ? 0 : Math.round(fact(n) / fact(n - k)));
+export const num = (v: number | string, display?: string): Problem['answer'] => ({
   kind: 'number',
   expected: `${v}`,
   display: display ?? (typeof v === 'number' ? fmtN(v) : undefined),
@@ -41,7 +40,7 @@ function randSubset(r: Rng, U: number[], lo: number, hi: number) {
 
 const U10 = range(1, 10);
 
-const sets: Skill = {
+export const sets: Skill = {
   id: 'dm.sets',
   name: 'Set operations',
   prereqs: [],
@@ -145,7 +144,7 @@ const sets: Skill = {
 const LETTERS = ['a', 'b', 'c', 'd', 'e'];
 const FN_CLASSES = ['Injective but not surjective', 'Surjective but not injective', 'Bijective', 'Neither'];
 
-const functions: Skill = {
+export const functions: Skill = {
   id: 'dm.functions',
   name: 'Functions',
   prereqs: ['dm.sets'],
@@ -274,7 +273,7 @@ function closeUnder(prop: Prop, S: number[], R: Pair[]): Pair[] {
 
 const BELL = [1, 1, 2, 5, 15, 52, 203];
 
-const relations: Skill = {
+export const relations: Skill = {
   id: 'dm.relations',
   name: 'Relations',
   prereqs: ['dm.sets'],
@@ -390,7 +389,7 @@ const relations: Skill = {
 // ---------------------------------------------------------------------------
 // Chapter 2: counting
 
-const basicCounting: Skill = {
+export const basicCounting: Skill = {
   id: 'dm.basic',
   name: 'Sum and product rules',
   prereqs: [],
@@ -452,7 +451,7 @@ const basicCounting: Skill = {
 
 const WORDS = ['BANANA', 'LETTER', 'BALLOON', 'COFFEE', 'STATISTICS', 'MISSISSIPPI', 'PEPPER', 'ASSESS', 'COMMITTEE', 'REFERRED'];
 
-const permComb: Skill = {
+export const permComb: Skill = {
   id: 'dm.perm',
   name: 'Permutations and combinations',
   prereqs: ['dm.basic'],
@@ -534,7 +533,7 @@ const permComb: Skill = {
   },
 };
 
-const binomial: Skill = {
+export const binomial: Skill = {
   id: 'dm.binom',
   name: 'Binomial theorem',
   prereqs: ['dm.perm'],
@@ -594,7 +593,7 @@ const binomial: Skill = {
   },
 };
 
-const incExc: Skill = {
+export const incExc: Skill = {
   id: 'dm.ie',
   name: 'Inclusion–exclusion and pigeonhole',
   prereqs: ['dm.basic'],
@@ -654,7 +653,7 @@ const incExc: Skill = {
   },
 };
 
-const starsBars: Skill = {
+export const starsBars: Skill = {
   id: 'dm.stars',
   name: 'Stars and bars',
   prereqs: ['dm.perm'],
@@ -731,7 +730,7 @@ const starsBars: Skill = {
 // ---------------------------------------------------------------------------
 // Chapter 3: recurrences
 
-const sequences: Skill = {
+export const sequences: Skill = {
   id: 'dm.seq',
   name: 'Sequences and recursive definitions',
   prereqs: [],
@@ -801,7 +800,7 @@ const sequences: Skill = {
   },
 };
 
-const recurrences: Skill = {
+export const recurrences: Skill = {
   id: 'dm.rec',
   name: 'Solving linear recurrences',
   prereqs: ['dm.seq'],
@@ -907,7 +906,7 @@ const GROWTH = [
   { tex: 'n!', rank: 8 },
 ];
 
-const bigO: Skill = {
+export const bigO: Skill = {
   id: 'dm.bigo',
   name: 'Big-O and growth rates',
   prereqs: [],
@@ -995,45 +994,3 @@ const bigO: Skill = {
     resources: [wiki('Big_O_notation', 'Big O notation'), wiki('Master_theorem_(analysis_of_algorithms)', 'Master theorem (analysis of algorithms)'), mcs],
   },
 };
-
-// ---------------------------------------------------------------------------
-
-export const discreteChapters: Chapter[] = [
-  {
-    id: 'dm.ch.sets',
-    title: 'Sets, functions and relations',
-    about: 'Set operations and sizes, injective and surjective functions, and the properties of relations (equivalence relations, partial orders).',
-    why: 'This is the vocabulary of all of mathematics and of databases, type systems and data structures.',
-    resources: [levin('sec_intro-sets', 'Sets'), levin('sec_intro-functions', 'Functions'), mcs],
-    skills: [sets, functions, relations],
-    deeper: [countability],
-  },
-  {
-    id: 'dm.ch.counting',
-    title: 'Counting',
-    about: 'Sum and product rules, permutations and combinations, the binomial theorem, inclusion–exclusion, pigeonhole, and stars and bars.',
-    why: 'Counting is how you size search spaces, analyse algorithms, estimate collisions and compute probabilities.',
-    resources: [levin('ch_counting', 'Counting'), mcs],
-    skills: [basicCounting, permComb, binomial, incExc, starsBars],
-    deeper: [specialNumbers],
-  },
-  {
-    id: 'dm.ch.recurrences',
-    title: 'Recurrences',
-    about: 'Recursively defined sequences and closed formulas for linear recurrences.',
-    why: 'Running times of recursive algorithms are recurrences, and so are many counting problems.',
-    resources: [levin('sec_recurrence', 'Solving Recurrence Relations'), levin('ch_sequences', 'Sequences')],
-    skills: [sequences, recurrences],
-    deeper: [],
-  },
-  {
-    id: 'dm.ch.asymptotics',
-    title: 'Asymptotics',
-    about: 'Big-O, Θ and the growth hierarchy, plus the master theorem for divide-and-conquer recurrences.',
-    why: 'The language of algorithm analysis: how running time scales with input size.',
-    resources: [wiki('Big_O_notation', 'Big O notation'), wiki('Master_theorem_(analysis_of_algorithms)', 'Master theorem (analysis of algorithms)'), mcs],
-    skills: [bigO],
-    deeper: [divideConquer],
-  },
-];
-

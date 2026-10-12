@@ -4,6 +4,7 @@ import { chapterOfKey, isActive, sessionTitle } from '../core/actions';
 import { dayKey } from '../core/scheduler';
 import { useData } from '../core/store';
 import { chapterProgress, currentChapter, when } from './common';
+import { WeakSpots } from './Insight';
 import { SubjectMap } from './SubjectMap';
 import type { Focus } from './Subjects';
 import { dueQueue } from './Review';
@@ -31,7 +32,6 @@ export function Dashboard({ onReview, onStudy, onSubjects }: Props) {
     .map(([, s]) => s.due)
     .filter((d) => d > now)
     .sort((a, b) => a - b)[0];
-  const weak = Object.keys(data.states).filter((id) => data.states[id].missStreak >= 2 && isActive(id, data));
 
   // Continue: the most recent unfinished session, else the current chapter of your most recent subject.
   const saved = Object.values(data.sessions).sort((a, b) => b.updatedAt - a.updatedAt)[0];
@@ -102,19 +102,7 @@ export function Dashboard({ onReview, onStudy, onSubjects }: Props) {
 
       <Heatmap counts={stats.perDay} />
 
-      {weak.length > 0 && (
-        <section>
-          <h3>Struggling with</h3>
-          <p className="muted small">Missed several times in a row. They come up more often until they stick.</p>
-          <div className="chips">
-            {weak.map((id) => (
-              <button key={id} className="chip status-weak" onClick={() => onSubjects({ section: id })}>
-                {SKILLS[id].name}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
+      <WeakSpots onOpen={(id) => onSubjects({ section: id })} onStudy={onStudy} />
 
       <section>
         <h3>Subjects</h3>
