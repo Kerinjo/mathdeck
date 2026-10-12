@@ -1,6 +1,7 @@
 import { Q } from '../core/frac';
 import { coef, mono, poly, signed, st, sum, t } from '../core/fmt';
 import type { Chapter, Problem, Resource, Skill } from '../core/types';
+import { epsilonDelta, inverseDerivatives, lagrange, optimization, powerSums, trigIntegrals } from './calculus-deeper';
 import { distinct, fact, int, lin, P } from './helpers';
 import { integrate, integrate2, isDerivative, near, value } from './verify';
 
@@ -1668,8 +1669,8 @@ const improper: Skill = {
         const k = r.int(1, 5);
         const p = r.pick([new Q(1, 2), new Q(1), new Q(3, 2), new Q(2), new Q(1, 3)]);
         const pool: { tex: string; conv: boolean; why: string }[] = [
-          { tex: int(`\\frac{1}{x^{${p.tex()}}}`, 1, '\\infty'), conv: p.value() > 1, why: `Tail $p$-integral: converges iff $p > 1$; here $p = ${p.tex()}$.` },
-          { tex: int(`\\frac{1}{x^{${p.tex()}}}`, 0, 1), conv: p.value() < 1, why: `Singular at $0$: converges iff $p < 1$; here $p = ${p.tex()}$.` },
+          { tex: int(`\\frac{1}{${p.eq(1) ? 'x' : `x^{${p.tex()}}`}}`, 1, '\\infty'), conv: p.value() > 1, why: `Tail $p$-integral: converges iff $p > 1$; here $p = ${p.tex()}$.` },
+          { tex: int(`\\frac{1}{${p.eq(1) ? 'x' : `x^{${p.tex()}}`}}`, 0, 1), conv: p.value() < 1, why: `Singular at $0$: converges iff $p < 1$; here $p = ${p.tex()}$.` },
           { tex: int(`\\frac{1}{x^{2} + ${k}}`, 0, '\\infty'), conv: true, why: `Behaves like $\\frac{1}{x^2}$ at infinity, which is integrable (the value is $\\frac{\\pi}{2\\sqrt{${k}}}$).` },
           { tex: int(`\\frac{1}{\\sqrt{x^{2} + ${k}}}`, 1, '\\infty'), conv: false, why: 'Behaves like $\\frac{1}{x}$ at infinity, which is not integrable.' },
           { tex: int('\\frac{1}{x\\ln x}', 2, '\\infty'), conv: false, why: 'Substitute $u = \\ln x$: $\\int \\frac{du}{u} = \\ln u \\to \\infty$.' },
@@ -1706,7 +1707,7 @@ export const calculusChapters: Chapter[] = [
     why: 'Derivatives, integrals and series are all defined as limits. Limits at infinity are also how you compare growth rates, which is exactly Big-O reasoning.',
     resources: [tb1b('limits', 'Limits, L’Hôpital’s rule, and epsilon delta definitions'), paul('CalcI/LimitsIntro.aspx', 'Limits (chapter intro)'), openstax(1, '2-2-the-limit-of-a-function', 'The Limit of a Function')],
     skills: [limits],
-    deeper: [],
+    deeper: [epsilonDelta],
   },
   {
     id: 'calc.ch.derivatives',
@@ -1715,7 +1716,7 @@ export const calculusChapters: Chapter[] = [
     why: 'Optimisation, physics, and machine learning (gradient descent and backpropagation are the chain rule applied at scale).',
     resources: [tb1b('derivatives', 'The paradox of the derivative'), tb1b('chain-rule-and-product-rule', 'Visualizing the chain rule and product rule'), openstax(1, '3-1-defining-the-derivative', 'Defining the Derivative')],
     skills: [power, product, chain, implicit],
-    deeper: [],
+    deeper: [inverseDerivatives],
   },
   {
     id: 'calc.ch.applications',
@@ -1724,7 +1725,7 @@ export const calculusChapters: Chapter[] = [
     why: 'Finding the best value of something is the most common use of calculus in practice.',
     resources: [paul('CalcI/DerivAppsIntro.aspx', 'Applications of Derivatives (chapter intro)'), openstax(1, '4-3-maxima-and-minima', 'Maxima and Minima')],
     skills: [extrema, lhopital],
-    deeper: [],
+    deeper: [optimization],
   },
   {
     id: 'calc.ch.integrals',
@@ -1733,7 +1734,7 @@ export const calculusChapters: Chapter[] = [
     why: 'Areas, totals and averages; in probability, every expected value and every density is an integral.',
     resources: [tb1b('integration', 'Integration and the fundamental theorem of calculus'), openstax(1, '5-3-the-fundamental-theorem-of-calculus', 'The Fundamental Theorem of Calculus'), paul('CalcII/IntTechIntro.aspx', 'Integration Techniques (chapter intro)')],
     skills: [antideriv, definite, usub, parts, pfrac],
-    deeper: [improper],
+    deeper: [improper, trigIntegrals],
   },
   {
     id: 'calc.ch.series',
@@ -1742,7 +1743,7 @@ export const calculusChapters: Chapter[] = [
     why: 'Taylor series are how computers evaluate $\\sin$, $e^x$ and friends, and they underpin most approximation arguments. Geometric series show up in algorithm analysis.',
     resources: [tb1b('taylor-series', 'Taylor series'), paul('CalcII/SeriesIntro.aspx', 'Series and Sequences (chapter intro)'), openstax(2, '5-2-infinite-series', 'Infinite Series')],
     skills: [series, taylor],
-    deeper: [],
+    deeper: [powerSums],
   },
   {
     id: 'calc.ch.multivariable',
@@ -1751,6 +1752,6 @@ export const calculusChapters: Chapter[] = [
     why: 'Machine learning lives here: a loss function has thousands of variables and the gradient tells you which way to move.',
     resources: [paul('CalcIII/PartialDerivsIntro.aspx', 'Partial Derivatives (chapter intro)'), openstax(3, '4-3-partial-derivatives', 'Partial Derivatives'), { kind: 'video', title: 'Khan Academy: Multivariable calculus', url: 'https://www.khanacademy.org/math/multivariable-calculus' }],
     skills: [partial, double],
-    deeper: [],
+    deeper: [lagrange],
   },
 ];
