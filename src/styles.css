@@ -454,7 +454,10 @@ nav button.active {
 .prompt {
   font-size: 1.15rem;
   line-height: 1.8;
-  margin-bottom: 1.5rem;
+  /* Scroll boxes clip vertically too: the padding keeps tall math (a displaystyle fraction's
+     denominator) inside the box, and the negative margin cancels it in the layout. */
+  padding: 0.5em 0;
+  margin: -0.5em 0 calc(1.5rem - 0.5em);
   overflow-x: auto;
   overflow-y: hidden;
 }
@@ -485,8 +488,9 @@ nav button.active {
 }
 .preview {
   min-height: 2rem;
-  padding: 0.2rem 0.1rem;
+  padding: 0.4rem 0.1rem;
   overflow-x: auto;
+  overflow-y: hidden;
 }
 .preview-error {
   color: var(--warn);
@@ -592,7 +596,10 @@ nav button.active {
 .expected {
   font-weight: 400;
   margin-left: auto;
+  padding: 0.4em 0;
+  margin-block: -0.4em;
   overflow-x: auto;
+  overflow-y: hidden;
   max-width: 100%;
 }
 .verdict-sub {
@@ -625,9 +632,10 @@ nav button.active {
 }
 .steps {
   margin: 0;
-  padding-left: 1.2rem;
+  padding: 0.4em 0 0.4em 1.2rem;
   line-height: 1.9;
   overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .learn .summary {
