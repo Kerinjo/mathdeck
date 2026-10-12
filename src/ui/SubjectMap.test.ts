@@ -19,10 +19,9 @@ describe('subject map layout', () => {
     expect(row.b).toBe((row.c + row.d) / 2);
   });
 
-  it('gives stand-alone subjects their own row underneath', () => {
-    const { col, row } = layout([subj('a'), subj('b', ['a']), subj('c', ['a']), subj('x'), subj('y')]);
-    expect([col.x, col.y]).toEqual([0, 1]);
-    expect(row.x).toBe(row.y);
-    expect(row.x).toBeGreaterThan(Math.max(row.a, row.b, row.c));
+  it('puts unconnected subjects in a free slot of the first column', () => {
+    const { col, row } = layout([subj('a'), subj('b', ['a']), subj('alone')]);
+    expect(col.alone).toBe(0);
+    expect(row.alone).not.toBe(row.a);
   });
 });

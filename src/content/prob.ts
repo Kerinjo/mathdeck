@@ -1195,7 +1195,7 @@ export const probabilityChapters: Chapter[] = [
   {
     id: 'prob.ch.basics',
     title: 'Probability basics',
-    about: 'Equally likely outcomes and counting, complements, the union rule, and independence. The counting uses combinations and arrangements; Discrete Math’s “Permutations and combinations” section covers them if they are new.',
+    about: 'Equally likely outcomes and counting, complements, the union rule, and independence.',
     why: 'Every later topic, from Bayes to machine learning, is built on these few rules.',
     resources: [grinstead, khanStats, seeingTheory],
     skills: [equally, rules],
@@ -1213,7 +1213,7 @@ export const probabilityChapters: Chapter[] = [
   {
     id: 'prob.ch.rv',
     title: 'Random variables',
-    about: 'Expected value and variance, their rules, and the binomial and geometric distributions (which use binomial coefficients).',
+    about: 'Expected value and variance, their rules, and the binomial and geometric distributions.',
     why: 'Expected value is how risks, games, algorithms and insurance are priced; variance is how sure you can be.',
     resources: [grinstead, wiki('Random_variable', 'Random variable'), khanStats],
     skills: [expectation, binomialDist],
@@ -1222,7 +1222,7 @@ export const probabilityChapters: Chapter[] = [
   {
     id: 'prob.ch.cont',
     title: 'Continuous distributions',
-    about: 'Densities and how to integrate them, the uniform and exponential distributions, and the normal distribution. The density section uses simple definite integrals (Calculus, “Definite integrals”); the normal distribution needs only a table.',
+    about: 'Densities and how to integrate them, the uniform and exponential distributions, and the normal distribution.',
     why: 'Measurements, waiting times and errors are continuous, and the normal distribution shows up wherever many small effects add up.',
     resources: [wiki('Normal_distribution', 'Normal distribution'), grinstead, khanStats],
     skills: [density, normal],

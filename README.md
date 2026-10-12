@@ -97,8 +97,8 @@ difference quotients); and whole-number answers must match exactly.
 ## Content
 
 Eight subjects. The Subjects page shows how they build on each other: Logic → Proofs → Discrete Math → Graph Theory
-and Number Theory; Calculus, Linear Algebra and Probability & Statistics stand on their own (probability borrows only a
-little counting and a few integrals, noted where they come up).
+and Number Theory; Probability & Statistics builds on Discrete Math and Calculus; Calculus and Linear Algebra stand on
+their own.
 
 | Subject | Chapters | Going deeper (optional) |
 |---|---|---|
