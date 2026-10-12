@@ -12,8 +12,10 @@ interface Props {
   skill: Skill;
   level: number;
   problem: Problem;
-  /** Called once, when you rate how it went. The parent records it and moves on. */
+  /** Called once, when you rate how it went. The parent records it (and may prepare the next card). */
   onRated(rating: Rating): void;
+  /** Move on to the next card. Right after rating, except after "didn't know how": then it waits for you. */
+  onNext(): void;
   /** Message about the previous card (e.g. "Section cleared"), shown above this one. */
   banner?: ReactNode;
 }
@@ -65,7 +67,7 @@ function choicesFor(r: Result): { choices: Choice[]; def: Rating } {
   };
 }
 
-export function Card({ skill, level, problem, onRated, banner }: Props) {
+export function Card({ skill, level, problem, onRated, onNext, banner }: Props) {
   const self = problem.answer.kind === 'self';
   const [response, setResponse] = useState<ResponseValue>(() => emptyResponse(problem.answer));
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +75,9 @@ export function Card({ skill, level, problem, onRated, banner }: Props) {
   const [showSolution, setShowSolution] = useState(false);
   const [showLearn, setShowLearn] = useState(false);
   const [rated, setRated] = useState(false);
+  /** After "didn't know how": stay on this card with the solution and intro until you choose to move on. */
+  const [studying, setStudying] = useState(false);
+  const studyingSince = useRef(0);
   const [showHint, setShowHint] = useState(false);
   const gradedAt = useRef(0);
   const hint =
@@ -97,6 +102,16 @@ export function Card({ skill, level, problem, onRated, banner }: Props) {
     if (rated) return;
     setRated(true);
     onRated(r);
+    if (r !== 'again') return onNext();
+    studyingSince.current = Date.now();
+    setStudying(true);
+    setShowSolution(true);
+    setShowLearn(true);
+  };
+  const next = () => {
+    // A reflexive second Enter right after rating shouldn't skip the explanation.
+    if (Date.now() - studyingSince.current < 1200) return;
+    onNext();
   };
 
   const options = result ? choicesFor(result) : null;
@@ -104,6 +119,13 @@ export function Card({ skill, level, problem, onRated, banner }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const typing = e.target instanceof HTMLInputElement;
+      if (studying) {
+        if (e.key === 'Enter' && !e.repeat) {
+          e.preventDefault();
+          next();
+        }
+        return;
+      }
       if (result && options) {
         if (e.repeat || Date.now() - gradedAt.current < 250) return;
         if (e.key === 'Enter') {
@@ -238,25 +260,27 @@ export function Card({ skill, level, problem, onRated, banner }: Props) {
             </div>
           )}
 
-          <div className="rate">
-            <div className="rate-label">{self ? 'How did it go?' : result.ok ? 'How was it?' : 'What happened?'}</div>
-            <div className="rate-buttons">
-              {options.choices.map((c, i) => (
-                <button
-                  key={c.rating}
-                  className={`rate-btn r-${c.rating} ${c.rating === options.def ? 'default' : ''}`}
-                  onClick={() => rate(c.rating)}
-                  disabled={rated}
-                >
-                  <span className="rate-top">
-                    <kbd>{i + 1}</kbd> {c.label}
-                    {c.rating === options.def && <kbd>⏎</kbd>}
-                  </span>
-                  <span className="rate-hint">{c.hint}</span>
-                </button>
-              ))}
+          {!studying && (
+            <div className="rate">
+              <div className="rate-label">{self ? 'How did it go?' : result.ok ? 'How was it?' : 'What happened?'}</div>
+              <div className="rate-buttons">
+                {options.choices.map((c, i) => (
+                  <button
+                    key={c.rating}
+                    className={`rate-btn r-${c.rating} ${c.rating === options.def ? 'default' : ''}`}
+                    onClick={() => rate(c.rating)}
+                    disabled={rated}
+                  >
+                    <span className="rate-top">
+                      <kbd>{i + 1}</kbd> {c.label}
+                      {c.rating === options.def && <kbd>⏎</kbd>}
+                    </span>
+                    <span className="rate-hint">{c.hint}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <Disclosure open={showSolution} onToggle={setShowSolution} label={self ? 'Model proof' : 'Worked solution'}>
             {self ? (
@@ -277,9 +301,17 @@ export function Card({ skill, level, problem, onRated, banner }: Props) {
               </ol>
             )}
           </Disclosure>
-          <Disclosure open={showLearn} onToggle={setShowLearn} label="Learn this section">
+          <Disclosure open={showLearn} onToggle={setShowLearn} label={studying ? 'Learn this section (start here if the solution lost you)' : 'Learn this section'}>
             <LearnPanel skill={skill} />
           </Disclosure>
+          {studying && (
+            // Below the reading, so moving on comes after it.
+            <div className="actions">
+              <button className="primary" onClick={() => onNext()}>
+                Next problem <kbd>⏎</kbd>
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>

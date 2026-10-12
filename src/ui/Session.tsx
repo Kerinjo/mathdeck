@@ -96,8 +96,10 @@ export function Session({ sessionKey, onExit }: { sessionKey: string; onExit(): 
     const { before, after } = recordAnswer(item.skillId, item.level, rating, now);
     const latest = getData().sessions[sessionKey];
     setFeedback(describeAnswer(item.skillId, before, after, rating, now));
-    proceed(recordInSession(latest, rating, after.cleared && !before.cleared, now));
+    // Saved as answered right away; reopening the session after this moves on by itself.
+    save(recordInSession(latest, rating, after.cleared && !before.cleared, now));
   };
+  const onNext = () => proceed(getData().sessions[sessionKey]);
 
   return (
     <div className="review">
@@ -121,6 +123,7 @@ export function Session({ sessionKey, onExit }: { sessionKey: string; onExit(): 
         level={item.level}
         problem={problem}
         onRated={onRated}
+        onNext={onNext}
         banner={feedback}
       />
     </div>
