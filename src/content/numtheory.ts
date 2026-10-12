@@ -1,42 +1,41 @@
-import type { Chapter, Problem, Resource, Rng, Skill } from '../core/types';
+import type { Problem, Resource, Rng, Skill } from '../core/types';
 import { distinct } from './helpers';
-import { diffieHellman, orders } from './cs-deeper';
 
-const wiki = (page: string, title: string): Resource => ({
+export const wiki = (page: string, title: string): Resource => ({
   kind: 'article',
   title: `Wikipedia: ${title}`,
   url: `https://en.wikipedia.org/wiki/${page}`,
 });
-const levin: Resource = {
+export const levin: Resource = {
   kind: 'book',
   title: 'Levin, Discrete Mathematics: An Open Introduction: Number Theory',
   url: 'https://discrete.openmathbooks.org/dmoi3/sec_addtops-numbth.html',
 };
-const mcs: Resource = {
+export const mcs: Resource = {
   kind: 'book',
   title: 'MIT 6.042, Mathematics for Computer Science (free PDF), ch. 9: Number Theory',
   url: 'https://courses.csail.mit.edu/6.042/spring18/mcs.pdf',
 };
-const khanCrypto: Resource = {
+export const khanCrypto: Resource = {
   kind: 'video',
   title: 'Khan Academy: Journey into cryptography',
   url: 'https://www.khanacademy.org/computing/computer-science/cryptography',
 };
 
 /** Every answer here is a whole number, typed as is: otherwise the box could do the modular arithmetic. */
-const num = (v: number): Problem['answer'] => ({ kind: 'number', expected: `${v}`, integer: true });
-const yesNo = (yes: boolean): Problem['answer'] => ({ kind: 'choice', options: ['Yes', 'No'], correct: yes ? 0 : 1 });
+export const num = (v: number): Problem['answer'] => ({ kind: 'number', expected: `${v}`, integer: true });
+export const yesNo = (yes: boolean): Problem['answer'] => ({ kind: 'choice', options: ['Yes', 'No'], correct: yes ? 0 : 1 });
 
-const mod = (a: number, m: number) => ((a % m) + m) % m;
-const gcd = (a: number, b: number): number => (b === 0 ? Math.abs(a) : gcd(b, a % b));
-const isPrime = (n: number) => {
+export const mod = (a: number, m: number) => ((a % m) + m) % m;
+export const gcd = (a: number, b: number): number => (b === 0 ? Math.abs(a) : gcd(b, a % b));
+export const isPrime = (n: number) => {
   if (n < 2) return false;
   for (let d = 2; d * d <= n; d++) if (n % d === 0) return false;
   return true;
 };
-const PRIMES = Array.from({ length: 200 }, (_, i) => i).filter(isPrime);
+export const PRIMES = Array.from({ length: 200 }, (_, i) => i).filter(isPrime);
 
-function factor(n: number): [number, number][] {
+export function factor(n: number): [number, number][] {
   const out: [number, number][] = [];
   for (let p = 2; p * p <= n; p++) {
     let e = 0;
@@ -46,9 +45,9 @@ function factor(n: number): [number, number][] {
   if (n > 1) out.push([n, 1]);
   return out;
 }
-const factorTex = (f: [number, number][]) => f.map(([p, e]) => (e > 1 ? `${p}^{${e}}` : `${p}`)).join(' \\cdot ');
+export const factorTex = (f: [number, number][]) => f.map(([p, e]) => (e > 1 ? `${p}^{${e}}` : `${p}`)).join(' \\cdot ');
 
-function powmod(a: number, k: number, m: number) {
+export function powmod(a: number, k: number, m: number) {
   let r = 1 % m;
   let b = mod(a, m);
   for (let e = k; e > 0; e = Math.floor(e / 2)) {
@@ -59,13 +58,13 @@ function powmod(a: number, k: number, m: number) {
 }
 
 /** Extended Euclid: [g, x, y] with ax + by = g. */
-function egcd(a: number, b: number): [number, number, number] {
+export function egcd(a: number, b: number): [number, number, number] {
   if (b === 0) return [a, 1, 0];
   const [g, x, y] = egcd(b, a % b);
   return [g, y, x - Math.floor(a / b) * y];
 }
 
-const inverse = (a: number, m: number) => mod(egcd(mod(a, m), m)[1], m);
+export const inverse = (a: number, m: number) => mod(egcd(mod(a, m), m)[1], m);
 
 /** The division steps of the Euclidean algorithm, for worked solutions. */
 function euclidSteps(a: number, b: number): string[] {
@@ -77,7 +76,7 @@ function euclidSteps(a: number, b: number): string[] {
   return steps;
 }
 
-const phi = (n: number) => factor(n).reduce((acc, [p, e]) => acc * (p - 1) * p ** (e - 1), 1);
+export const phi = (n: number) => factor(n).reduce((acc, [p, e]) => acc * (p - 1) * p ** (e - 1), 1);
 
 /** Repeated squaring, shown as the table of a^(2^i) mod m used. */
 function squaringSteps(a: number, k: number, m: number): string {
@@ -95,7 +94,7 @@ function squaringSteps(a: number, k: number, m: number): string {
 // ---------------------------------------------------------------------------
 // Chapter 1: divisibility
 
-const primes: Skill = {
+export const primes: Skill = {
   id: 'nt.div',
   name: 'Primes and divisors',
   prereqs: [],
@@ -170,7 +169,7 @@ const primes: Skill = {
   },
 };
 
-const gcdSkill: Skill = {
+export const gcdSkill: Skill = {
   id: 'nt.gcd',
   name: 'GCD and the Euclidean algorithm',
   prereqs: ['nt.div'],
@@ -234,7 +233,7 @@ const gcdSkill: Skill = {
 // ---------------------------------------------------------------------------
 // Chapter 2: modular arithmetic
 
-const modArith: Skill = {
+export const modArith: Skill = {
   id: 'nt.mod',
   name: 'Modular arithmetic',
   prereqs: ['nt.div'],
@@ -280,7 +279,7 @@ const modArith: Skill = {
         const k = r.int(50, 2000);
         const v = powmod(a, k, m);
         return {
-          prompt: `What are the last ${two ? 'two digits' : 'digit'} of $${a}^{${k}}$? ${two ? '(Give a number from 0 to 99.)' : ''}`,
+          prompt: two ? `What are the last two digits of $${a}^{${k}}$? (Give a number from 0 to 99.)` : `What is the last digit of $${a}^{${k}}$?`,
           hint: `The last ${two ? 'two digits are' : 'digit is'} the value mod ${m}. Powers mod ${m} repeat in a cycle: find it, then reduce the exponent.`,
           answer: num(v),
           solution: [
@@ -301,7 +300,7 @@ const modArith: Skill = {
   },
 };
 
-const inverses: Skill = {
+export const inverses: Skill = {
   id: 'nt.inverse',
   name: 'Inverses and linear congruences',
   prereqs: ['nt.mod', 'nt.gcd'],
@@ -377,7 +376,7 @@ const inverses: Skill = {
   },
 };
 
-const crt: Skill = {
+export const crt: Skill = {
   id: 'nt.crt',
   name: 'Chinese remainder theorem',
   prereqs: ['nt.inverse'],
@@ -441,7 +440,7 @@ function crtProblem(r: Rng, k: number): Problem {
 // ---------------------------------------------------------------------------
 // Chapter 3: Fermat, Euler, RSA
 
-const fermat: Skill = {
+export const fermat: Skill = {
   id: 'nt.fermat',
   name: "Fermat's and Euler's theorems",
   prereqs: ['nt.mod'],
@@ -508,7 +507,7 @@ const fermat: Skill = {
   },
 };
 
-const rsa: Skill = {
+export const rsa: Skill = {
   id: 'nt.rsa',
   name: 'RSA',
   prereqs: ['nt.fermat', 'nt.inverse'],
@@ -574,35 +573,3 @@ function rsaKey(r: Rng) {
   } while (gcd(e, ph) !== 1 || e >= ph);
   return { p, q, e, ph };
 }
-
-// ---------------------------------------------------------------------------
-
-export const numberTheoryChapters: Chapter[] = [
-  {
-    id: 'nt.ch.div',
-    title: 'Divisibility',
-    about: 'Primes and factorisation, counting divisors, the gcd and lcm, and the Euclidean algorithm with Bézout’s identity.',
-    why: 'The Euclidean algorithm is one of the oldest algorithms still in daily use: it is how modular inverses (and so RSA keys) are computed.',
-    resources: [levin, wiki('Euclidean_algorithm', 'Euclidean algorithm'), mcs],
-    skills: [primes, gcdSkill],
-    deeper: [],
-  },
-  {
-    id: 'nt.ch.mod',
-    title: 'Modular arithmetic',
-    about: 'Computing with remainders: fast powers, inverses, linear congruences and the Chinese remainder theorem.',
-    why: 'Hashing, checksums, random number generators and all of public-key cryptography work modulo something.',
-    resources: [wiki('Modular_arithmetic', 'Modular arithmetic'), khanCrypto, mcs],
-    skills: [modArith, inverses, crt],
-    deeper: [],
-  },
-  {
-    id: 'nt.ch.crypto',
-    title: 'Fermat, Euler and RSA',
-    about: "Fermat's little theorem, Euler's totient and theorem, and the RSA cryptosystem built on them.",
-    why: 'RSA secured most of the web for decades, and the same ideas power primality tests and digital signatures.',
-    resources: [wiki('RSA_(cryptosystem)', 'RSA (cryptosystem)'), khanCrypto, mcs],
-    skills: [fermat, rsa],
-    deeper: [orders, diffieHellman],
-  },
-];

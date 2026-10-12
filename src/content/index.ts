@@ -6,7 +6,7 @@ import { discreteChapters } from './discrete';
 import { graphChapters } from './graphs';
 import { linalgChapters } from './linalg-more';
 import { logicChapters } from './logic';
-import { numberTheoryChapters } from './numtheory';
+import { numberTheoryChapters } from './numtheory-more';
 import { probabilityChapters } from './prob';
 import { proofsChapters } from './proofs';
 
