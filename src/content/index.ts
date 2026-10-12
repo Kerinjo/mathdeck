@@ -1,10 +1,12 @@
 import type { Chapter, Skill, Subject } from '../core/types';
 import { calculusChapters } from './calculus';
 import { linalgChapters } from './linalg';
+import { logicChapters } from './logic';
 
 export const SUBJECTS: Subject[] = [
   { id: 'calculus', name: 'Calculus', blurb: 'Limits, derivatives, integrals, series', requires: [], chapters: calculusChapters },
   { id: 'linalg', name: 'Linear Algebra', blurb: 'Vectors, matrices, eigenvalues', requires: [], chapters: linalgChapters },
+  { id: 'logic', name: 'Logic', blurb: 'Connectives, equivalence, quantifiers, arguments', requires: [], chapters: logicChapters },
 ];
 
 export const SUBJECT_BY_ID = Object.fromEntries(SUBJECTS.map((s) => [s.id, s])) as Record<string, Subject>;

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { parse, splitTopLevel } from '../core/check';
+import { parse, parseLogic, splitTopLevel } from '../core/check';
 import type { Answer } from '../core/types';
 import { Math, Text } from './Tex';
 
@@ -54,10 +54,12 @@ export function AnswerInput({ answer, value, onChange, onSubmit, disabled, revea
   if (answer.kind === 'matrix' || answer.kind === 'direction') {
     return <GridInput grid={value as string[][]} onChange={onChange} onSubmit={() => onSubmit()} disabled={disabled} />;
   }
+  if (answer.kind === 'self') return null;
   return (
     <TextAnswer
-      vars={answer.kind === 'expr' ? answer.vars : []}
+      vars={answer.kind === 'expr' || answer.kind === 'formula' ? answer.vars : []}
       list={answer.kind === 'list'}
+      logic={answer.kind === 'formula'}
       value={value as string}
       onChange={onChange}
       onSubmit={() => onSubmit()}
@@ -69,6 +71,7 @@ export function AnswerInput({ answer, value, onChange, onSubmit, disabled, revea
 function TextAnswer(props: {
   vars: string[];
   list: boolean;
+  logic: boolean;
   value: string;
   onChange(v: string): void;
   onSubmit(): void;
@@ -82,7 +85,7 @@ function TextAnswer(props: {
   let preview: JSX.Element | null = null;
   if (props.value.trim()) {
     const parts = props.list ? splitTopLevel(props.value.replace(/^[{[]|[}\]]$/g, '')) : [props.value];
-    const parsed = parts.map((p) => parse(p, props.vars));
+    const parsed = parts.map((p) => (props.logic ? parseLogic(p, props.vars) : parse(p, props.vars)));
     const bad = parsed.find((p) => !p.ok);
     preview =
       bad && !bad.ok ? (
@@ -101,7 +104,13 @@ function TextAnswer(props: {
         disabled={props.disabled}
         spellCheck={false}
         autoComplete="off"
-        placeholder={props.vars.length ? `answer in ${props.vars.join(', ')}` : 'answer'}
+        placeholder={
+          props.logic
+            ? `formula in ${props.vars.join(', ')}, e.g. ~p | (q & r)`
+            : props.vars.length
+              ? `answer in ${props.vars.join(', ')}`
+              : 'answer'
+        }
         onChange={(e) => props.onChange(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {

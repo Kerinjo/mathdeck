@@ -13,6 +13,11 @@ export type Answer =
   /** Column vector, any non-zero multiple of `expected` is accepted. */
   | { kind: 'direction'; expected: string[] }
   | { kind: 'choice'; options: string[]; correct: number }
+  /**
+   * Propositional formula over `vars`, accepted if logically equivalent to `expected`.
+   * `form` additionally requires a shape: no → / ↔, negation normal form, DNF or CNF.
+   */
+  | { kind: 'formula'; expected: string; vars: string[]; form?: 'noimp' | 'nnf' | 'dnf' | 'cnf' }
   /** No answer box: show the model solution, then you rate yourself (proofs). */
   | { kind: 'self' };
 

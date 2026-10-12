@@ -1,5 +1,6 @@
 import { all, create, type MathNode } from 'mathjs';
 import { makeRng } from './rng';
+import { equivalent, hasImp, isCNF, isDNF, isNNF, parseFormula, texF, varsOf, type F } from './logic';
 import type { Answer } from './types';
 
 const math = create(all, {});
@@ -261,7 +262,36 @@ export function check(answer: Answer, response: Response): Verdict {
       return { ok: response === answer.correct };
     case 'self':
       return { ok: true };
+    case 'formula': {
+      const u = parseLogic(response as string, answer.vars);
+      if (!u.ok) return { ok: false, error: u.error };
+      const shape = FORM_RULES[answer.form ?? 'any'];
+      if (!shape.test(u.f)) return { ok: false, error: shape.message };
+      return { ok: equivalent(u.f, parseFormula(answer.expected), answer.vars) };
+    }
   }
+}
+
+const FORM_RULES: Record<string, { test(f: F): boolean; message: string }> = {
+  any: { test: () => true, message: '' },
+  noimp: { test: (f) => !hasImp(f), message: 'Use only ¬ ∧ ∨ (no → or ↔).' },
+  nnf: { test: isNNF, message: 'Negation normal form: only ∧ ∨, and ¬ only directly in front of a letter.' },
+  dnf: { test: (f) => !hasImp(f) && isDNF(f), message: 'DNF: an OR of terms, each an AND of letters or negated letters.' },
+  cnf: { test: (f) => !hasImp(f) && isCNF(f), message: 'CNF: an AND of clauses, each an OR of letters or negated letters.' },
+};
+
+export type ParsedLogic = { ok: true; f: F; tex: string } | { ok: false; error: string };
+
+export function parseLogic(input: string, vars: string[]): ParsedLogic {
+  let f: F;
+  try {
+    f = parseFormula(input);
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+  const extra = [...varsOf(f)].filter((v) => !vars.includes(v));
+  if (extra.length) return { ok: false, error: `Unknown letter "${extra[0]}" (use ${vars.join(', ')})` };
+  return { ok: true, f, tex: texF(f) };
 }
 
 /** TeX for the expected answer (choice answers are plain text instead). */
@@ -281,5 +311,7 @@ export function answerTex(answer: Answer): string {
       return answer.options[answer.correct];
     case 'self':
       return '';
+    case 'formula':
+      return texF(parseFormula(answer.expected));
   }
 }
