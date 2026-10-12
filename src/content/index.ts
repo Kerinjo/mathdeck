@@ -8,7 +8,7 @@ import { linalgChapters } from './linalg-more';
 import { logicChapters } from './logic';
 import { numberTheoryChapters } from './numtheory-more';
 import { probabilityChapters } from './prob';
-import { proofsChapters } from './proofs';
+import { proofsChapters } from './proofs-more';
 
 export const SUBJECTS: Subject[] = [
   { id: 'calculus', name: 'Calculus I', blurb: 'Limits, continuity, derivatives and their applications', requires: [], chapters: calculus1Chapters },
