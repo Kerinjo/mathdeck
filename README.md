@@ -77,7 +77,12 @@ this chapter"**. Session length and review size are in Settings.
 | `~p \| (q & r)`, `p -> q` | logic: `~ ! not`, `& and`, `\| or`, `-> =>`, `<-> <=>` |
 | `A, C, B` or `ACB` | vertex orders and paths in graphs |
 
-A live preview under the answer box shows how your input was read.
+A live preview under the answer box shows how your input was read (never its value).
+
+The answer box only does arithmetic (`+ - * / ^ !`, roots, logs, trig), so it can't do the exercise for you:
+`%`, `mod` and bitwise operators are rejected; modular-arithmetic answers must be a plain whole number; limit answers
+must be a short simplified value (no plugging in x = 10^9); formula answers can't use tiny or huge constants (no
+difference quotients); and whole-number answers must match exactly.
 
 ## Content
 

@@ -20,6 +20,7 @@ const num = (q: Q | string, display?: string): Problem['answer'] => ({
   expected: q.toString(),
   display: display ?? (q instanceof Q ? q.tex() : undefined),
 });
+const exact = (q: Q | string, display?: string): Problem['answer'] => ({ ...num(q, display), simple: true } as Problem['answer']);
 const expr = (expected: string, display?: string): Problem['answer'] => ({ kind: 'expr', expected, vars: ['x'], display });
 const anti = (expected: string, display: string): Problem['answer'] => ({
   kind: 'expr',
@@ -138,7 +139,7 @@ export const inverseDerivatives: Skill = {
         const ans = new Q(1, dfc);
         return {
           prompt: `$f(x) = ${poly([1, 0, a, b]).tex}$ is invertible. Find $(f^{-1})'(${fc})$.`,
-          answer: num(ans),
+          answer: exact(ans),
           solution: [
             `First find which $x$ maps to ${fc}: $f(${c}) = ${fc}$, so $f^{-1}(${fc}) = ${c}$.`,
             `$(f^{-1})'(y) = \\dfrac{1}{f'(f^{-1}(y))}$, and $f'(x) = 3x^2 + ${a}$, so $f'(${c}) = ${dfc}$.`,
@@ -471,7 +472,7 @@ export const lagrange: Skill = {
         const ans = new Q(fx * u1 + fy * u2, len);
         return {
           prompt: `Find the directional derivative of $f(x, y) = ${sum([t(a, 'x^{2}'), t(b, 'xy'), t(c, 'y^{2}')]).tex}$ at $(${x0}, ${y0})$ in the direction of $(${u1}, ${u2})$.`,
-          answer: num(ans),
+          answer: exact(ans),
           solution: [
             `$\\nabla f = (${sum([t(2 * a, 'x'), t(b, 'y')]).tex},\\ ${sum([t(b, 'x'), t(2 * c, 'y')]).tex}) = (${fx}, ${fy})$ at the point.`,
             `Unit direction: $\\frac{1}{${len}}(${u1}, ${u2})$. $D_u f = \\nabla f\\cdot u = \\frac{${fx}\\cdot${u1 < 0 ? `(${u1})` : u1} + ${fy}\\cdot${u2 < 0 ? `(${u2})` : u2}}{${len}} = ${ans.tex()}$`,

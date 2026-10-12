@@ -40,6 +40,9 @@ const num = (q: Q | string, display?: string): Problem['answer'] => ({
   display: display ?? (q instanceof Q ? q.tex() : undefined),
 });
 
+/** A limit or a derivative's value: only a short simplified answer, so the function can't be pasted in. */
+const exact = (q: Q | string, display?: string): Problem['answer'] => ({ ...num(q, display), simple: true } as Problem['answer']);
+
 const diff = (f: string) => `Differentiate $f(x) = ${f}$.`;
 
 // ---------------------------------------------------------------------------
@@ -58,7 +61,7 @@ const limits: Skill = {
         const ans = new Q(a - b, a - c);
         return {
           prompt: `Evaluate $\\displaystyle\\lim_{x\\to ${a}} \\frac{${n.tex}}{${d.tex}}$.`,
-          answer: num(ans),
+          answer: exact(ans),
           solution: [
             `Substituting $x = ${a}$ gives $\\frac{0}{0}$, so factor out the common root.`,
             `$\\dfrac{(${lin(a)})(${lin(b)})}{(${lin(a)})(${lin(c)})} = \\dfrac{${lin(b)}}{${lin(c)}}$ for $x \\neq ${a}$.`,
@@ -84,7 +87,7 @@ const limits: Skill = {
         const ans = lower ? new Q(0) : new Q(p, q);
         return {
           prompt: `Evaluate $\\displaystyle\\lim_{x\\to\\infty} \\frac{${n.tex}}{${d.tex}}$.`,
-          answer: num(ans),
+          answer: exact(ans),
           solution: lower
             ? [
                 `The denominator has higher degree (${deg + 1}) than the numerator (${deg}).`,
@@ -107,7 +110,7 @@ const limits: Skill = {
         const ans = new Q(1, 2 * a * k);
         return {
           prompt: `Evaluate $\\displaystyle\\lim_{x\\to 0} \\frac{\\sqrt{x + ${a * a}} - ${a}}{${coef(k)}x}$.`,
-          answer: num(ans),
+          answer: exact(ans),
           solution: [
             `Multiply by the conjugate $\\sqrt{x + ${a * a}} + ${a}$ on top and bottom.`,
             `Numerator becomes $(x + ${a * a}) - ${a * a} = x$, so the expression is $\\dfrac{1}{${k === 1 ? '' : k}(\\sqrt{x + ${a * a}} + ${a})}$.`,
@@ -475,7 +478,7 @@ const implicit: Skill = {
         const ans = new Q(-a * x0, b * y0);
         return {
           prompt: `Find $\\dfrac{dy}{dx}$ at the point $(${x0}, ${y0})$ on the curve $${coef(a)}x^{2} + ${coef(b)}y^{2} = ${c}$.`,
-          answer: num(ans),
+          answer: exact(ans),
           solution: [
             `Differentiate both sides, treating $y$ as a function of $x$: $${2 * a}x + ${2 * b}y\\,y' = 0$.`,
             `$y' = -\\dfrac{${a}x}{${b}y}$`,
@@ -497,7 +500,7 @@ const implicit: Skill = {
         const ans = new Q(-(2 * x0 + k * y0), k * x0 + 2 * y0);
         return {
           prompt: `Find $\\dfrac{dy}{dx}$ at $(${x0}, ${y0})$ on the curve $x^{2} ${k < 0 ? '-' : '+'} ${Math.abs(k) === 1 ? '' : Math.abs(k)}xy + y^{2} = ${c}$.`,
-          answer: num(ans),
+          answer: exact(ans),
           solution: [
             `Differentiate; $xy$ needs the product rule: $2x ${signed(k)}(y + xy') + 2yy' = 0$.`,
             `Collect $y'$: $y'(${k}x + 2y) = -(2x ${signed(k)}y)$.`,
@@ -519,7 +522,7 @@ const implicit: Skill = {
         const ans = new Q(-(3 * x0 * x0 + k * y0), 3 * y0 * y0 + k * x0);
         return {
           prompt: `Find $\\dfrac{dy}{dx}$ at $(${x0}, ${y0})$ on the curve $x^{3} + y^{3} ${k < 0 ? '-' : '+'} ${Math.abs(k) === 1 ? '' : Math.abs(k)}xy = ${c}$.`,
-          answer: num(ans),
+          answer: exact(ans),
           solution: [
             `Differentiate: $3x^2 + 3y^2y' ${signed(k)}(y + xy') = 0$.`,
             `$y' = -\\dfrac{3x^2 ${signed(k)}y}{3y^2 ${signed(k)}x}$`,
@@ -646,7 +649,7 @@ const lhopital: Skill = {
         const ans = new Q(a, b);
         return {
           prompt: `Evaluate $\\displaystyle\\lim_{x\\to 0} \\frac{${top.tex}}{${coef(b)}x}$.`,
-          answer: num(ans),
+          answer: exact(ans),
           solution: [
             `At $x = 0$ this is $\\frac{0}{0}$, so differentiate top and bottom.`,
             `$\\displaystyle\\lim_{x\\to 0} \\frac{${top.d}}{${b}} = \\frac{${a}}{${b}} = ${ans.tex()}$`,
@@ -664,7 +667,7 @@ const lhopital: Skill = {
           const ans = new Q(a * a, 2 * b);
           return {
             prompt: `Evaluate $\\displaystyle\\lim_{x\\to 0} \\frac{1 - \\cos(${coef(a)}x)}{${coef(b)}x^{2}}$.`,
-            answer: num(ans),
+            answer: exact(ans),
             solution: [
               `$\\frac{0}{0}$: differentiate → $\\dfrac{${a}\\sin(${coef(a)}x)}{${2 * b}x}$, still $\\frac{0}{0}$.`,
               `Again → $\\dfrac{${a * a}\\cos(${coef(a)}x)}{${2 * b}} \\to \\dfrac{${a * a}}{${2 * b}} = ${ans.tex()}$`,
@@ -675,7 +678,7 @@ const lhopital: Skill = {
         const ans = new Q(a * a, 2);
         return {
           prompt: `Evaluate $\\displaystyle\\lim_{x\\to 0} \\frac{e^{${coef(a)}x} - 1 ${st(-a, 'x')}}{x^{2}}$.`,
-          answer: num(ans),
+          answer: exact(ans),
           solution: [
             `$\\frac{0}{0}$: differentiate → $\\dfrac{${a}e^{${coef(a)}x} ${signed(-a)}}{2x}$, still $\\frac{0}{0}$.`,
             `Again → $\\dfrac{${a * a}e^{${coef(a)}x}}{2} \\to ${ans.tex()}$`,
@@ -696,7 +699,7 @@ const lhopital: Skill = {
           : `Evaluate $\\displaystyle\\lim_{x\\to \\infty} \\left(1 ${a < 0 ? '-' : '+'} \\frac{${Math.abs(a)}}{x}\\right)^{${b === 1 ? '' : b}x}$.`;
         return {
           prompt,
-          answer: num(`e^(${ab})`, `e^{${ab}}`),
+          answer: exact(`e^(${ab})`, `e^{${ab}}`),
           inputHint: 'e^3 or exp(3).',
           solution: [
             `This is a $1^\\infty$ form. Let $L$ be the limit and take logs: $\\ln L = \\lim ${toZero ? `\\frac{${b}\\ln(1 ${st(a, 'x')})}{x}` : `${b}x\\ln\\left(1 ${signed(a)}\\cdot\\frac{1}{x}\\right)`}$.`,

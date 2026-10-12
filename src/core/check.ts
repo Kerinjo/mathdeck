@@ -10,6 +10,11 @@ const FUNCS = new Set([
   'sinh', 'cosh', 'tanh', 'log', 'log10', 'log2', 'sqrt', 'cbrt', 'exp', 'abs', 'nthRoot',
 ]);
 const CONSTS = new Set(['pi', 'e', 'Infinity']);
+/**
+ * Arithmetic only. mathjs also parses %, mod, bitwise &, |, <<, >> and more; those let the answer box do the
+ * work (e.g. "(920*752 - 46) % 7" or "1235 & 7"), so they are rejected.
+ */
+const OPS = new Set(['add', 'subtract', 'multiply', 'divide', 'pow', 'unaryMinus', 'unaryPlus', 'factorial']);
 
 /**
  * Turn what people naturally type into something mathjs parses:
@@ -82,6 +87,12 @@ export function parse(input: string, vars: string[] = []): Parsed {
           ? `Unknown symbol "${name}" (variables: ${vars.join(', ')})`
           : `Unknown symbol "${name}" (expected a number)`;
       }
+    } else if ((n as any).isOperatorNode && !OPS.has((n as any).fn)) {
+      const op = (n as any).op as string;
+      error =
+        op === '%' || op === 'mod'
+          ? '% and mod aren’t allowed: work out the remainder yourself'
+          : `"${op}" isn’t allowed: use + − * / ^ only`;
     } else if (
       !(n as any).isOperatorNode &&
       !(n as any).isConstantNode &&
@@ -94,6 +105,27 @@ export function parse(input: string, vars: string[] = []): Parsed {
   if (error) return { ok: false, error };
   return { ok: true, node, tex: toTex(node) };
 }
+
+/**
+ * Constant pieces that are tiny or huge (0.000001, 10^9) are how you would make the box compute a limit or a
+ * difference quotient for you. No genuine answer to a formula question needs them.
+ */
+function extremeConstant(node: MathNode, vars: string[]): boolean {
+  let found = false;
+  node.traverse((n) => {
+    // The answer as a whole may be tiny (e^-8); only its pieces are checked.
+    if (found || n === node || (n as any).isSymbolNode) return;
+    const usesVar = n.filter((m) => (m as any).isSymbolNode && vars.includes((m as any).name)).length > 0;
+    if (usesVar) return;
+    const v = evaluate(n, {});
+    if (v && Number.isFinite(v.re) && v.im === 0 && v.re !== 0 && (Math.abs(v.re) < 1e-3 || Math.abs(v.re) >= 1e5)) found = true;
+  });
+  return found;
+}
+
+/** Number of operations and function calls: a simplified value needs only a few. */
+const complexity = (node: MathNode) =>
+  node.filter((n) => (n as any).isOperatorNode || (n as any).isFunctionNode).length;
 
 export const toTex = (node: MathNode) =>
   node.toTex({ parenthesis: 'auto', implicit: 'hide' } as any);
@@ -160,6 +192,8 @@ function numberOf(input: string): { ok: true; v: C } | { ok: false; error: strin
 function sameNumber(u: C, e: C) {
   if (!Number.isFinite(e.re)) return u.re === e.re && u.im === 0;
   if (!finite(u)) return false;
+  // Whole-number answers must match exactly: a relative tolerance would let a count of ~2·10^9 be off by ~200.
+  if (e.im === 0 && Number.isInteger(e.re)) return Math.abs(u.im) < 1e-9 && Math.abs(u.re - e.re) <= 1e-6;
   return closeC(u, e, Math.max(mag(u), mag(e)));
 }
 
@@ -189,11 +223,20 @@ export function check(answer: Answer, response: Response): Verdict {
     case 'expr': {
       const u = parse(response as string, answer.vars);
       if (!u.ok) return { ok: false, error: u.error };
+      if (extremeConstant(u.node, answer.vars))
+        return { ok: false, error: 'Numbers that tiny or huge aren’t needed here: enter the formula itself.' };
       const e = parse(answer.expected, answer.vars);
       if (!e.ok) throw new Error(`bad expected answer: ${answer.expected}`);
       return { ok: sameExpr(u.node, e.node, answer.vars, !!answer.upToConstant) };
     }
     case 'number': {
+      if (answer.integer && !/^\s*[-−]?\s*\d+\s*$/.test(response as string))
+        return { ok: false, error: 'Enter just the whole number, without any operations.' };
+      if (answer.simple) {
+        const p = parse(response as string);
+        if (p.ok && (complexity(p.node) > 3 || extremeConstant(p.node, [])))
+          return { ok: false, error: 'Enter the simplified value, e.g. 3/4, -2, sqrt(2)/2 or e^3.' };
+      }
       const u = numberOf(response as string);
       if (!u.ok) return { ok: false, error: u.error };
       const e = numberOf(answer.expected);

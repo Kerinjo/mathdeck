@@ -23,7 +23,8 @@ const khanCrypto: Resource = {
   url: 'https://www.khanacademy.org/computing/computer-science/cryptography',
 };
 
-const num = (v: number): Problem['answer'] => ({ kind: 'number', expected: `${v}` });
+/** Every answer here is a whole number, typed as is: otherwise the box could do the modular arithmetic. */
+const num = (v: number): Problem['answer'] => ({ kind: 'number', expected: `${v}`, integer: true });
 const yesNo = (yes: boolean): Problem['answer'] => ({ kind: 'choice', options: ['Yes', 'No'], correct: yes ? 0 : 1 });
 
 const mod = (a: number, m: number) => ((a % m) + m) % m;

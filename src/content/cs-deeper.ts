@@ -478,6 +478,8 @@ const order = (a: number, n: number) => {
 const PRIMES = [5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
 const phi = (n: number) => [...Array(n).keys()].filter((k) => k > 0 && gcd(k, n) === 1).length;
 
+const rem = (v: number): Problem['answer'] => ({ kind: 'number', expected: `${v}`, integer: true });
+
 export const orders: Skill = {
   id: 'nt.orders',
   name: 'Orders, primitive roots and square roots',
@@ -494,7 +496,7 @@ export const orders: Skill = {
         const powers = Array.from({ length: k }, (_, i) => powmod(a, i + 1, n));
         return {
           prompt: `What is the order of ${a} modulo ${n} (the smallest $k \\ge 1$ with $${a}^k \\equiv 1$)?`,
-          answer: num(k),
+          answer: rem(k),
           solution: [`Powers of ${a} mod ${n}: ${powers.map((x, i) => `$${a}^{${i + 1}} \\equiv ${x}$`).join(', ')}.`, `The order is ${k} (it always divides $\\varphi(${n}) = ${phi(n)}$).`],
         };
       },
@@ -571,7 +573,7 @@ export const diffieHellman: Skill = {
         const A = powmod(g, a, p);
         return {
           prompt: `Diffie–Hellman with $p = ${p}$, $g = ${g}$. Alice's secret is $a = ${a}$. What does she publish?`,
-          answer: num(A),
+          answer: rem(A),
           solution: [`She publishes $A = g^a \\bmod p = ${g}^{${a}} \\bmod ${p} = ${A}$.`],
         };
       },
@@ -586,7 +588,7 @@ export const diffieHellman: Skill = {
         const s = powmod(B, a, p);
         return {
           prompt: `Diffie–Hellman with $p = ${p}$, $g = ${g}$. Alice's secret is $a = ${a}$, and Bob publishes $B = ${B}$. What is their shared secret?`,
-          answer: num(s),
+          answer: rem(s),
           solution: [`Alice computes $B^a \\bmod p = ${B}^{${a}} \\bmod ${p} = ${s}$.`, `Bob gets the same from $A^b$, since both equal $g^{ab}$.`],
           selfCheck: () => s === powmod(powmod(g, a, p), b, p),
         };
@@ -600,7 +602,7 @@ export const diffieHellman: Skill = {
         const h = powmod(g, x, p);
         return {
           prompt: `Find the smallest $x \\ge 1$ with $${g}^x \\equiv ${h} \\pmod{${p}}$.`,
-          answer: num(x),
+          answer: rem(x),
           solution: [`List powers of ${g} mod ${p} until you hit ${h}: ${Array.from({ length: x }, (_, i) => `$${powmod(g, i + 1, p)}$`).join(', ')}.`, `So $x = ${x}$. For large $p$ no efficient method is known, which is what makes Diffie–Hellman secure.`],
         };
       },

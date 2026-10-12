@@ -4,8 +4,12 @@
 export type Answer =
   /** Expression in `vars`, compared numerically at random points. */
   | { kind: 'expr'; expected: string; vars: string[]; upToConstant?: boolean; display?: string }
-  /** A single number; `expected` is a mathjs expression like "3/8" or "sqrt(2)". */
-  | { kind: 'number'; expected: string; display?: string }
+  /**
+   * A single number; `expected` is a mathjs expression like "3/8" or "sqrt(2)".
+   * `integer` accepts only a plain whole number, for problems where typing the computation would be the shortcut.
+   * `simple` accepts only a short simplified value (limits: no plugging a nearby number into the function).
+   */
+  | { kind: 'number'; expected: string; display?: string; integer?: boolean; simple?: boolean }
   /** Comma-separated numbers, order ignored (e.g. eigenvalues, roots). */
   | { kind: 'list'; expected: string[]; display?: string }
   /** An ordered list of labels such as a BFS order or a path ("A, C, B" or "ACB"). */
