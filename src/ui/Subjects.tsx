@@ -5,6 +5,7 @@ import { levelsDone, status, STREAK_TO_LEVEL_UP } from '../core/scheduler';
 import { useData, type Data } from '../core/store';
 import type { Chapter, Skill, Subject } from '../core/types';
 import { LearnPanel } from './Card';
+import { History } from './Insight';
 import { Bar, chapterProgress, currentChapter, Pips, STATUS_LABEL, subjectProgress, when } from './common';
 import { SubjectMap } from './SubjectMap';
 import { Text } from './Tex';
@@ -274,11 +275,7 @@ function SectionRow(props: {
           </div>
         ))}
       </div>
-      {s && (
-        <div className="muted small">
-          {s.correct}/{s.attempts} solved overall{s.missStreak >= 2 ? ` · lost ${s.missStreak} in a row` : ''}
-        </div>
-      )}
+      <History skillId={skill.id} />
       <LearnPanel skill={skill} />
       <div className="actions left">
         {!s?.cleared && (

@@ -92,6 +92,7 @@ export function useData(): Data {
       return () => listeners.delete(l);
     },
     () => data,
+    () => data,
   );
 }
 

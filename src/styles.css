@@ -1257,6 +1257,99 @@ h1 {
   }
 }
 
+/* ---- insight: weak spots and section history ---- */
+
+.weak-list {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+.weak-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.weak-meter {
+  flex: none;
+  width: 6px;
+  height: 2.2rem;
+  border-radius: 3px;
+  background: var(--surface-2);
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+.weak-meter i {
+  display: block;
+  width: 100%;
+  background: var(--rc);
+}
+.weak-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.6rem;
+  row-gap: 0.1rem;
+}
+.weak-name {
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+}
+.weak-why {
+  flex-basis: 100%;
+  color: var(--rc);
+}
+.weak-row.r-hard .weak-why {
+  color: var(--muted);
+}
+
+.history {
+  display: grid;
+  gap: 0.4rem;
+}
+.history-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 7px;
+}
+.history-day {
+  display: inline-flex;
+  gap: 2px;
+}
+.hmark {
+  display: inline-block;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--hc);
+  border: 1.5px solid var(--hc);
+  vertical-align: -2px;
+}
+.history-legend .hmark {
+  width: 8px;
+  height: 10px;
+  vertical-align: -1px;
+}
+.h-again { --hc: var(--bad); }
+.h-slip { --hc: var(--warn); background: transparent; }
+.h-hinted { --hc: var(--warn); }
+.h-hard { --hc: var(--hm3); }
+.h-good { --hc: var(--ok); }
+.h-easy { --hc: var(--accent); }
+.history-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.9rem;
+  color: var(--muted);
+}
+
 /* ---- graph figures ---- */
 
 .graph-fig {

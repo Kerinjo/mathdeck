@@ -50,6 +50,10 @@ Everything else:
 - **Subjects page**: a map of how the subjects build on each other, and below it an outline of every subject,
   chapter and section, each with its progress and a Study button. Expand a section for its levels, practice and
   intro; ⓘ on a chapter shows its optional "About".
+- **Progress insight** (`src/core/insight.ts`): expanding a section shows its full history, one mark per answer
+  grouped by day and coloured by your rating. The Today page lists **weak spots**: sections whose recent answers
+  (latest counting most) show trouble, each with the reason: didn't know how, needed hints, slips or felt hard. Slips
+  weigh little, and a section drops off the list once you get it right again.
 - **Nothing is locked.** Open any chapter at any time. "I already know this" (for a section or a whole chapter)
   marks it cleared, and it gets checked at its top level in a review 3 days later.
 - **Learning material is optional.** Every chapter has an *About this chapter* panel (what it covers, why it matters,
