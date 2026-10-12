@@ -224,6 +224,25 @@ export function check(answer: Answer, response: Response): Verdict {
       }
       return { ok: true };
     }
+    case 'set': {
+      const raw = (response as string).trim();
+      const inner = raw.replace(/^\{|\}$/g, '').trim();
+      const empty = inner === '' || /^(∅|empty|\\varnothing)$/i.test(raw);
+      const us: C[] = [];
+      if (!empty) {
+        for (const it of splitTopLevel(inner)) {
+          const u = numberOf(it);
+          if (!u.ok) return { ok: false, error: `"${it}": ${u.error}` };
+          if (!us.some((x) => sameNumber(x, u.v))) us.push(u.v);
+        }
+      }
+      const es = answer.expected.map((x) => {
+        const e = numberOf(x);
+        if (!e.ok) throw new Error(`bad expected answer: ${x}`);
+        return e.v;
+      });
+      return { ok: us.length === es.length && es.every((e) => us.some((u) => sameNumber(u, e))) };
+    }
     case 'matrix':
     case 'direction': {
       const grid = response as string[][];
@@ -303,6 +322,8 @@ export function answerTex(answer: Answer): string {
       return answer.display ?? exprTex(answer.expected);
     case 'list':
       return answer.display ?? answer.expected.map((x) => exprTex(x)).join(',\\ ');
+    case 'set':
+      return answer.expected.length ? `\\{${answer.expected.map((x) => exprTex(x)).join(', ')}\\}` : '\\varnothing';
     case 'matrix':
       return `\\begin{bmatrix} ${answer.expected.map((r) => r.map((x) => exprTex(x)).join(' & ')).join(' \\\\ ')} \\end{bmatrix}`;
     case 'direction':

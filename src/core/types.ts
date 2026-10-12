@@ -8,6 +8,8 @@ export type Answer =
   | { kind: 'number'; expected: string; display?: string }
   /** Comma-separated numbers, order ignored (e.g. eigenvalues, roots). */
   | { kind: 'list'; expected: string[]; display?: string }
+  /** A set of numbers: order and repeats ignored, "{}" or "∅" for the empty set. */
+  | { kind: 'set'; expected: string[] }
   /** Matrix (or column vector) entered in a grid. */
   | { kind: 'matrix'; expected: string[][] }
   /** Column vector, any non-zero multiple of `expected` is accepted. */

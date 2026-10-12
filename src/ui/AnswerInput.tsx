@@ -58,7 +58,7 @@ export function AnswerInput({ answer, value, onChange, onSubmit, disabled, revea
   return (
     <TextAnswer
       vars={answer.kind === 'expr' || answer.kind === 'formula' ? answer.vars : []}
-      list={answer.kind === 'list'}
+      list={answer.kind === 'list' || answer.kind === 'set'}
       logic={answer.kind === 'formula'}
       value={value as string}
       onChange={onChange}

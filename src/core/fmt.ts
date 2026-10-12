@@ -36,7 +36,8 @@ export function sum(terms: Term[]): { tex: string; expr: string } {
     let body: string;
     if (!x.tex) body = a.tex();
     else if (a.eq(1)) body = x.tex;
-    else body = `${a.tex()}${x.tex}`;
+    // A body starting with a digit (2^n) needs an explicit dot after the coefficient: 3 · 2^n, not 32^n.
+    else body = /^\d/.test(x.tex) ? `${a.tex()} \\cdot ${x.tex}` : `${a.tex()}${x.tex}`;
     tex += i === 0 ? (neg ? '-' : '') + body : (neg ? ' - ' : ' + ') + body;
     const ce = c.toString();
     const e = !x.expr ? `(${ce})` : c.eq(1) ? `(${x.expr})` : `(${ce})*(${x.expr})`;
