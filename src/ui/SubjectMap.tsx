@@ -9,15 +9,33 @@ const H = 58;
 const GAP_X = 56;
 const GAP_Y = 14;
 
-/** Longest chain of prerequisites above each subject: its column on the map. */
-function layers(subjects: Subject[]) {
+/**
+ * Column = longest chain of prerequisites above a subject. Rows: roots with dependents go first,
+ * and every other subject sits level with (the average of) the subjects it builds on.
+ */
+function layout(subjects: Subject[]) {
+  const byId = Object.fromEntries(subjects.map((s) => [s.id, s]));
   const depth: Record<string, number> = {};
   const d = (s: Subject): number =>
-    (depth[s.id] ??= s.requires.length ? 1 + Math.max(...s.requires.map((r) => d(subjects.find((x) => x.id === r)!))) : 0);
+    (depth[s.id] ??= s.requires.length ? 1 + Math.max(...s.requires.map((x) => d(byId[x]))) : 0);
   subjects.forEach(d);
-  const cols: Subject[][] = [];
-  subjects.forEach((s) => (cols[depth[s.id]] ??= []).push(s));
-  return cols;
+  const dependents = (id: string): number =>
+    subjects.filter((s) => (s.requires as string[]).includes(id)).reduce((n, s) => n + 1 + dependents(s.id), 0);
+
+  const row: Record<string, number> = {};
+  const cols = Math.max(...Object.values(depth)) + 1;
+  for (let c = 0; c < cols; c++) {
+    const here = subjects.filter((s) => depth[s.id] === c);
+    const want = (s: Subject) =>
+      s.requires.length ? s.requires.reduce((a, x) => a + row[x], 0) / s.requires.length : -dependents(s.id);
+    here.sort((a, b) => want(a) - want(b));
+    let next = 0;
+    for (const s of here) {
+      row[s.id] = Math.max(next, c === 0 ? next : Math.round(want(s)));
+      next = row[s.id] + 1;
+    }
+  }
+  return { depth, row };
 }
 
 /** Subjects as a graph, arrows from what each builds on. Turns vertical on narrow screens. */
@@ -33,13 +51,12 @@ export function SubjectMap({ onPick, selected }: { onPick(id: string): void; sel
     return () => ro.disconnect();
   }, []);
 
-  const cols = layers(SUBJECTS);
+  const { depth, row } = layout(SUBJECTS);
   const pos: Record<string, { x: number; y: number }> = {};
-  cols.forEach((col, i) =>
-    col.forEach((s, j) => {
-      pos[s.id] = narrow ? { x: j * (W + GAP_Y), y: i * (H + GAP_X) } : { x: i * (W + GAP_X), y: j * (H + GAP_Y) };
-    }),
-  );
+  for (const s of SUBJECTS) {
+    const [i, j] = [depth[s.id], row[s.id]];
+    pos[s.id] = narrow ? { x: j * (W + GAP_Y), y: i * (H + GAP_X) } : { x: i * (W + GAP_X), y: j * (H + GAP_Y) };
+  }
   const width = Math.max(...Object.values(pos).map((p) => p.x)) + W;
   const height = Math.max(...Object.values(pos).map((p) => p.y)) + H;
 
