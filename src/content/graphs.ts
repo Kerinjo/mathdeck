@@ -30,6 +30,7 @@ import {
 } from '../core/graph';
 import type { Chapter, Problem, Resource, Rng, Skill } from '../core/types';
 import { distinct } from './helpers';
+import { directed, pruferCodes } from './cs-deeper';
 
 const levin = (page: string, title: string): Resource => ({
   kind: 'book',
@@ -804,7 +805,7 @@ export const graphChapters: Chapter[] = [
     why: 'Graph search is the backbone of routing, crawling, puzzle solving and dependency resolution.',
     resources: [wiki('Breadth-first_search', 'Breadth-first search'), wiki('Dijkstra%27s_algorithm', "Dijkstra's algorithm"), levin('sec_paths', 'Euler Paths and Circuits')],
     skills: [traversal, shortest, euler],
-    deeper: [],
+    deeper: [directed],
   },
   {
     id: 'gt.ch.trees',
@@ -813,7 +814,7 @@ export const graphChapters: Chapter[] = [
     why: 'Trees are everywhere in computing: file systems, parse trees, heaps, and cheapest-network design.',
     resources: [levin('sec_trees', 'Trees'), wiki('Minimum_spanning_tree', 'Minimum spanning tree')],
     skills: [trees, mst],
-    deeper: [],
+    deeper: [pruferCodes],
   },
   {
     id: 'gt.ch.structure',

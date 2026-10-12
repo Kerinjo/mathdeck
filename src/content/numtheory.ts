@@ -1,5 +1,6 @@
 import type { Chapter, Problem, Resource, Rng, Skill } from '../core/types';
 import { distinct } from './helpers';
+import { diffieHellman, orders } from './cs-deeper';
 
 const wiki = (page: string, title: string): Resource => ({
   kind: 'article',
@@ -593,6 +594,6 @@ export const numberTheoryChapters: Chapter[] = [
     why: 'RSA secured most of the web for decades, and the same ideas power primality tests and digital signatures.',
     resources: [wiki('RSA_(cryptosystem)', 'RSA (cryptosystem)'), khanCrypto, mcs],
     skills: [fermat, rsa],
-    deeper: [],
+    deeper: [orders, diffieHellman],
   },
 ];

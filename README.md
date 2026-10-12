@@ -82,15 +82,15 @@ A live preview under the answer box shows how your input was read.
 Seven subjects. The Subjects page shows how they build on each other: Logic → Proofs → Discrete Math → Graph Theory
 and Number Theory; Calculus and Linear Algebra stand on their own.
 
-| Subject | Chapters |
-|---|---|
-| **Calculus** | Limits · Derivatives · Applications of derivatives · Integrals (+ improper integrals) · Series · Multivariable |
-| **Linear Algebra** | Vectors · Linear systems · Matrices and linear maps · Determinants · Vector spaces · Eigenvalues (+ diagonalization) · Orthogonality |
-| **Logic** | Propositions and connectives · Equivalence and normal forms · Quantifiers · Arguments |
-| **Proofs** | Direct proof · Contrapositive and contradiction · Induction · Sets and functions (self-rated, with model proofs) |
-| **Discrete Math** | Sets, functions and relations · Counting · Recurrences · Asymptotics |
-| **Graph Theory** | Graph basics · Paths and traversal · Trees · Colouring, planarity and matching (with drawn graphs) |
-| **Number Theory** | Divisibility · Modular arithmetic · Fermat, Euler and RSA |
+| Subject | Chapters | Going deeper (optional) |
+|---|---|---|
+| **Calculus** | Limits · Derivatives · Applications of derivatives · Integrals · Series · Multivariable | ε–δ · inverse functions and logarithmic differentiation · related rates and optimisation · improper integrals · trigonometric integrals · summing power series · directional derivatives and Lagrange multipliers |
+| **Linear Algebra** | Vectors · Linear systems · Matrices and linear maps · Determinants · Vector spaces · Eigenvalues · Orthogonality | lines and planes · LU decomposition · areas, volumes and Cramer's rule · change of basis · diagonalization · singular values · projection and orthogonal matrices |
+| **Logic** | Propositions and connectives · Equivalence and normal forms · Quantifiers · Arguments | satisfiability · translating English into logic |
+| **Proofs** | Direct proof · Contrapositive and contradiction · Induction · Sets and functions (self-rated, with model proofs) | pigeonhole proofs · structural induction |
+| **Discrete Math** | Sets, functions and relations · Counting · Recurrences · Asymptotics | countability · derangements, Catalan and Stirling numbers · divide-and-conquer recurrences |
+| **Graph Theory** | Graph basics · Paths and traversal · Trees · Colouring, planarity and matching (with drawn graphs) | directed graphs (topological sort, strong components) · Prüfer codes |
+| **Number Theory** | Divisibility · Modular arithmetic · Fermat, Euler and RSA | orders, primitive roots and square roots · Diffie–Hellman and discrete logs |
 
 Answer types: expressions, numbers, lists, sets, matrices/vectors, logical formulas (any equivalent formula, optionally
 in a required shape such as CNF), vertex sequences, multiple choice, and self-rated proofs.

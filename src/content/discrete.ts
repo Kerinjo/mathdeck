@@ -1,6 +1,7 @@
 import { coef, poly, st, sum, t } from '../core/fmt';
 import type { Chapter, Problem, Resource, Rng, Skill } from '../core/types';
 import { distinct, fact } from './helpers';
+import { countability, divideConquer, specialNumbers } from './cs-deeper';
 
 const levin = (page: string, title: string): Resource => ({
   kind: 'book',
@@ -1005,7 +1006,7 @@ export const discreteChapters: Chapter[] = [
     why: 'This is the vocabulary of all of mathematics and of databases, type systems and data structures.',
     resources: [levin('sec_intro-sets', 'Sets'), levin('sec_intro-functions', 'Functions'), mcs],
     skills: [sets, functions, relations],
-    deeper: [],
+    deeper: [countability],
   },
   {
     id: 'dm.ch.counting',
@@ -1014,7 +1015,7 @@ export const discreteChapters: Chapter[] = [
     why: 'Counting is how you size search spaces, analyse algorithms, estimate collisions and compute probabilities.',
     resources: [levin('ch_counting', 'Counting'), mcs],
     skills: [basicCounting, permComb, binomial, incExc, starsBars],
-    deeper: [],
+    deeper: [specialNumbers],
   },
   {
     id: 'dm.ch.recurrences',
@@ -1032,7 +1033,7 @@ export const discreteChapters: Chapter[] = [
     why: 'The language of algorithm analysis: how running time scales with input size.',
     resources: [wiki('Big_O_notation', 'Big O notation'), wiki('Master_theorem_(analysis_of_algorithms)', 'Master theorem (analysis of algorithms)'), mcs],
     skills: [bigO],
-    deeper: [],
+    deeper: [divideConquer],
   },
 ];
 
