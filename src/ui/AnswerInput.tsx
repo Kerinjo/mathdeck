@@ -55,6 +55,7 @@ export function AnswerInput({ answer, value, onChange, onSubmit, disabled, revea
     return <GridInput grid={value as string[][]} onChange={onChange} onSubmit={() => onSubmit()} disabled={disabled} />;
   }
   if (answer.kind === 'self') return null;
+  if (answer.kind === 'sequence') return <SequenceAnswer value={value as string} onChange={onChange} onSubmit={() => onSubmit()} disabled={disabled} />;
   return (
     <TextAnswer
       vars={answer.kind === 'expr' || answer.kind === 'formula' ? answer.vars : []}
@@ -161,6 +162,35 @@ function GridInput(props: { grid: string[][]; onChange(v: string[][]): void; onS
         )}
       </div>
       <div className="muted small">Tab moves between cells.</div>
+    </div>
+  );
+}
+
+function SequenceAnswer(props: { value: string; onChange(v: string): void; onSubmit(): void; disabled: boolean }) {
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!props.disabled) ref.current?.focus();
+  }, [props.disabled]);
+  return (
+    <div className="text-answer">
+      <input
+        ref={ref}
+        className="answer-box"
+        value={props.value}
+        disabled={props.disabled}
+        spellCheck={false}
+        autoComplete="off"
+        placeholder="vertices in order, e.g. A, C, B, D"
+        onChange={(e) => props.onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+            props.onSubmit();
+          }
+        }}
+      />
+      <div className="preview muted small">Separate with commas or spaces, or just type ACBD.</div>
     </div>
   );
 }

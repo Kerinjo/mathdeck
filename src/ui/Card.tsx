@@ -5,6 +5,7 @@ import { useData } from '../core/store';
 import type { Problem, Skill } from '../core/types';
 import { CHAPTER_OF, chapterNumber, SKILLS, SUBJECT_OF_CHAPTER } from '../content';
 import { AnswerInput, emptyResponse, type ResponseValue } from './AnswerInput';
+import { GraphFig } from './GraphFig';
 import { Math, Text } from './Tex';
 
 interface Props {
@@ -141,6 +142,7 @@ export function Card({ skill, level, problem, onRated, banner }: Props) {
       <div className="prompt">
         <Text text={problem.prompt} />
       </div>
+      {problem.figure && <GraphFig fig={problem.figure} />}
 
       {self ? (
         !result && <div className="hint">Work it out on paper, then compare with the model proof.</div>

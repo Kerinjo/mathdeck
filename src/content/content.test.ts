@@ -22,6 +22,8 @@ function expectedResponse(a: Answer) {
       return a.expected;
     case 'list':
       return a.expected.join(', ');
+    case 'sequence':
+      return a.expected.join(', ').toLowerCase();
     case 'set':
       return `{${[...a.expected].reverse().join(', ')}}`;
     case 'matrix':

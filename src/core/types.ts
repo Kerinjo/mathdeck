@@ -8,6 +8,8 @@ export type Answer =
   | { kind: 'number'; expected: string; display?: string }
   /** Comma-separated numbers, order ignored (e.g. eigenvalues, roots). */
   | { kind: 'list'; expected: string[]; display?: string }
+  /** An ordered list of labels such as a BFS order or a path ("A, C, B" or "ACB"). */
+  | { kind: 'sequence'; expected: string[] }
   /** A set of numbers: order and repeats ignored, "{}" or "∅" for the empty set. */
   | { kind: 'set'; expected: string[] }
   /** Matrix (or column vector) entered in a grid. */
@@ -23,8 +25,17 @@ export type Answer =
   /** No answer box: show the model solution, then you rate yourself (proofs). */
   | { kind: 'self' };
 
+/** A drawing shown under the prompt. Coordinates are in [0, 1]. */
+export interface GraphFigure {
+  kind: 'graph';
+  nodes: { label: string; x: number; y: number }[];
+  edges: { a: number; b: number; label?: string }[];
+  directed?: boolean;
+}
+
 export interface Problem {
   prompt: string;
+  figure?: GraphFigure;
   answer: Answer;
   /** Worked solution, one step per entry. */
   solution: string[];

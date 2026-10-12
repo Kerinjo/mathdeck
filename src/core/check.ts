@@ -224,6 +224,12 @@ export function check(answer: Answer, response: Response): Verdict {
       }
       return { ok: true };
     }
+    case 'sequence': {
+      const raw = (response as string).trim().toUpperCase();
+      const items = /[,\s]/.test(raw) ? raw.split(/[\s,→>-]+/).filter(Boolean) : [...raw];
+      if (!items.length) return { ok: false, error: 'Empty' };
+      return { ok: items.length === answer.expected.length && items.every((x, i) => x === answer.expected[i].toUpperCase()) };
+    }
     case 'set': {
       const raw = (response as string).trim();
       const inner = raw.replace(/^\{|\}$/g, '').trim();
@@ -322,6 +328,8 @@ export function answerTex(answer: Answer): string {
       return answer.display ?? exprTex(answer.expected);
     case 'list':
       return answer.display ?? answer.expected.map((x) => exprTex(x)).join(',\\ ');
+    case 'sequence':
+      return answer.expected.join(',\\ ');
     case 'set':
       return answer.expected.length ? `\\{${answer.expected.map((x) => exprTex(x)).join(', ')}\\}` : '\\varnothing';
     case 'matrix':

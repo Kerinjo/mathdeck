@@ -1,6 +1,7 @@
 import type { Chapter, Skill, Subject } from '../core/types';
 import { calculusChapters } from './calculus';
 import { discreteChapters } from './discrete';
+import { graphChapters } from './graphs';
 import { linalgChapters } from './linalg';
 import { logicChapters } from './logic';
 import { proofsChapters } from './proofs';
@@ -11,6 +12,7 @@ export const SUBJECTS: Subject[] = [
   { id: 'logic', name: 'Logic', blurb: 'Connectives, equivalence, quantifiers, arguments', requires: [], chapters: logicChapters },
   { id: 'proofs', name: 'Proofs', blurb: 'Direct, contradiction, induction, sets and functions', requires: ['logic'], chapters: proofsChapters },
   { id: 'discrete', name: 'Discrete Math', blurb: 'Sets, counting, recurrences, Big-O', requires: ['proofs'], chapters: discreteChapters },
+  { id: 'graphs', name: 'Graph Theory', blurb: 'Search, shortest paths, trees, colouring, flows', requires: ['discrete'], chapters: graphChapters },
 ];
 
 export const SUBJECT_BY_ID = Object.fromEntries(SUBJECTS.map((s) => [s.id, s])) as Record<string, Subject>;
