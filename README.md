@@ -109,7 +109,7 @@ their own (probability borrows only a little counting and a few integrals, noted
 | **Logic** | Propositions and connectives · Equivalence and normal forms · Quantifiers · Arguments | satisfiability · translating English into logic |
 | **Proofs** | Direct proof · Contrapositive and contradiction · Induction · Sets and functions (self-rated, with model proofs) | pigeonhole proofs · structural induction |
 | **Discrete Math** | Sets, functions and relations · Counting · Recurrences · Asymptotics | countability · derangements, Catalan and Stirling numbers · divide-and-conquer recurrences |
-| **Graph Theory** | Graph basics · Paths and traversal · Trees · Colouring, planarity and matching (with drawn graphs) | directed graphs (topological sort, strong components) · Prüfer codes |
+| **Graph Theory** | Graph basics (with isomorphism) · Paths and traversal (with distances and connectivity) · Trees · Colouring, planarity and matching (with cliques, independent sets and covers; drawn graphs throughout) | directed graphs (topological sort, strong components) · Prüfer codes · extremal graphs and Ramsey theory |
 | **Number Theory** | Divisibility (primes, gcd, divisibility rules, Diophantine equations, number bases) · Modular arithmetic · Fermat, Euler and RSA | arithmetic functions · check digits and calendars · orders, primitive roots and square roots · Diffie–Hellman and discrete logs |
 | **Probability & Statistics** | Probability basics · Conditional probability · Random variables · Continuous distributions · Statistics | Markov chains · linearity of expectation · Poisson · Markov and Chebyshev bounds · hypothesis tests |
 
