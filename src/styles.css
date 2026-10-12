@@ -1069,25 +1069,40 @@ h1 {
   fill: none;
   stroke: var(--muted);
   stroke-width: 1.5;
-  opacity: 0.7;
+  opacity: 0.45;
+  transition: opacity 0.15s, stroke 0.15s;
+}
+.map-edge.hot {
+  stroke: var(--accent);
+  opacity: 1;
 }
 .map-arrowhead {
-  fill: var(--muted);
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.map-arrowhead.hot {
+  stroke: var(--accent);
 }
 .map-node {
   cursor: pointer;
 }
-.map-node > rect:first-child {
+.map-card {
   fill: var(--surface-2);
   stroke: var(--border);
   stroke-width: 1;
   transition: stroke 0.15s;
 }
-.map-node:hover > rect:first-child,
-.map-node:focus-visible > rect:first-child,
-.map-node.selected > rect:first-child {
+.map-node:hover .map-card,
+.map-node:focus-visible .map-card,
+.map-node.selected .map-card {
   stroke: var(--accent);
   stroke-width: 1.5;
+}
+.map-node.done .map-card {
+  stroke: var(--s-mastered);
 }
 .map-node:focus {
   outline: none;
@@ -1097,15 +1112,23 @@ h1 {
   font-size: 14px;
   font-weight: 600;
 }
+.subject-map.narrow .map-title {
+  font-size: 13px;
+}
+.map-meta {
+  fill: var(--muted);
+  font-size: 11px;
+}
 .map-track {
-  fill: var(--bg);
+  fill: var(--border);
 }
 .map-fill {
   fill: var(--s-cleared);
 }
 .map-pct {
-  fill: var(--muted);
+  fill: var(--s-cleared);
   font-size: 11px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
