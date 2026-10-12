@@ -4,7 +4,7 @@ import { calculus2Chapters } from './calc2';
 import { multivariableChapters } from './calc3';
 import { discreteChapters } from './discrete';
 import { graphChapters } from './graphs';
-import { linalgChapters } from './linalg';
+import { linalgChapters } from './linalg-more';
 import { logicChapters } from './logic';
 import { numberTheoryChapters } from './numtheory';
 import { probabilityChapters } from './prob';

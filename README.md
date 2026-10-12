@@ -105,7 +105,7 @@ their own (probability borrows only a little counting and a few integrals, noted
 | **Calculus I** | Limits and continuity · Derivatives · Applications of derivatives | ε–δ · inverse functions and logarithmic differentiation |
 | **Calculus II** | Integrals · Integration techniques · Applications of integration · Sequences and series · Differential equations | numerical integration · summing power series · second-order linear equations |
 | **Multivariable Calculus** | Partial derivatives · Multiple integrals · Vector calculus | change of variables (Jacobians) |
-| **Linear Algebra** | Vectors · Linear systems · Matrices and linear maps · Determinants · Vector spaces · Eigenvalues · Orthogonality | lines and planes · LU decomposition · areas, volumes and Cramer's rule · change of basis · diagonalization · singular values · projection and orthogonal matrices |
+| **Linear Algebra** | Vectors · Linear systems · Matrices and linear maps · Determinants · Vector spaces · Eigenvalues · Orthogonality | lines and planes · applications (chemical equations, interpolation, input–output) · LU decomposition · areas, volumes and Cramer's rule · change of basis · abstract vector spaces · diagonalization · singular values · projection and orthogonal matrices |
 | **Logic** | Propositions and connectives · Equivalence and normal forms · Quantifiers · Arguments | satisfiability · translating English into logic |
 | **Proofs** | Direct proof · Contrapositive and contradiction · Induction · Sets and functions (self-rated, with model proofs) | pigeonhole proofs · structural induction |
 | **Discrete Math** | Sets, functions and relations · Counting · Recurrences · Asymptotics | countability · derangements, Catalan and Stirling numbers · divide-and-conquer recurrences |
