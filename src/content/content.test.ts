@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import katex from 'katex';
 import { answerTex, check, parse } from '../core/check';
+import { tidyTex } from '../core/tidy';
 import { makeRng } from '../core/rng';
 import type { Answer } from '../core/types';
 import { ALL_SKILLS, SKILLS } from './index';
@@ -10,7 +11,8 @@ const RUNS = 60;
 /** Throws on malformed TeX in any $...$ segment. */
 function renderAll(text: string) {
   for (const m of text.matchAll(/\$\$([\s\S]+?)\$\$|\$([^$]+?)\$/g)) {
-    katex.renderToString(m[1] ?? m[2], { throwOnError: true, strict: false });
+    // What the app shows: the tidied TeX must still be valid.
+    katex.renderToString(tidyTex(m[1] ?? m[2]), { throwOnError: true, strict: false });
   }
 }
 
@@ -62,7 +64,7 @@ describe('content', () => {
           expect(check(p.answer, expectedResponse(p.answer) as never), where).toEqual({ ok: true });
           expect(() => [p.prompt, ...p.solution, p.hint ?? ''].forEach(renderAll), where).not.toThrow();
           if (p.hint) expect(p.hint.split('$').length % 2, `unbalanced $ in hint of ${where}`).toBe(1);
-          if (p.answer.kind !== 'choice' && p.answer.kind !== 'self') expect(() => katex.renderToString(answerTex(p.answer), { throwOnError: true }), where).not.toThrow();
+          if (p.answer.kind !== 'choice' && p.answer.kind !== 'self') expect(() => katex.renderToString(tidyTex(answerTex(p.answer)), { throwOnError: true }), where).not.toThrow();
           else if (p.answer.kind === 'choice') p.answer.options.forEach((o) => expect(() => renderAll(o), where).not.toThrow());
           p.solution.forEach((s) => expect(s.split('$').length % 2, `unbalanced $ in ${where}`).toBe(1));
           expect(p.prompt.split('$').length % 2, `unbalanced $ in ${where}`).toBe(1);

@@ -391,7 +391,7 @@ export const chain: Skill = {
             answer: expr(ans, `e^{${coef(k)}x^{2}}(${inner.tex})`),
             solution: [
               `Product rule, with the chain rule for $e^{${coef(k)}x^2}$: its derivative is $${2 * k}xe^{${coef(k)}x^2}$.`,
-              `$f'(x) = ${m === 1 ? '' : m}x^{${m - 1}}e^{${coef(k)}x^{2}} + x^{${m}} \\cdot ${2 * k}xe^{${coef(k)}x^{2}}$`,
+              `$f'(x) = ${m === 1 ? '' : `${m}x${m === 2 ? '' : `^{${m - 1}}`}`}e^{${coef(k)}x^{2}} + x^{${m}} \\cdot ${2 * k}xe^{${coef(k)}x^{2}}$`,
               `$= e^{${coef(k)}x^{2}}(${inner.tex})$`,
             ],
             selfCheck: () => isDerivative(`x^${m}*exp(${k}*x^2)`, ans),
