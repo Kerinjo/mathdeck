@@ -42,7 +42,7 @@ const FORMS: { en: (a: string, b: string) => string; f: F; note: string }[] = [
   { en: (a, b) => `it is neither the case that ${a} nor that ${b}`, f: and(not(p), not(q)), note: '"Neither … nor" is $\\lnot p \\land \\lnot q$.' },
   { en: (a, b) => `“${a}” is a necessary condition for “${b}”`, f: imp(q, p), note: 'A necessary condition follows from the other: $q \\to p$.' },
   { en: (a, b) => `“${a}” is a sufficient condition for “${b}”`, f: imp(p, q), note: 'A sufficient condition implies the other: $p \\to q$.' },
-  { en: (a, b) => `${a}, but not ${b}`, f: and(p, not(q)), note: '"But" is just "and": $p \\land \\lnot q$.' },
+  { en: (a, b) => `${a}, but it is not the case that ${b}`, f: and(p, not(q)), note: '"But" is just "and": $p \\land \\lnot q$.' },
   { en: (a, b) => `${a} if and only if ${b}`, f: iff(p, q), note: '"If and only if" is $p \\leftrightarrow q$.' },
   { en: (a, b) => `either ${a} or ${b}, but not both`, f: and(or(p, q), not(and(p, q))), note: 'Exclusive or: $(p \\lor q) \\land \\lnot(p \\land q)$.' },
 ];
