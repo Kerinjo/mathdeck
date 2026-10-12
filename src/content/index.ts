@@ -16,7 +16,7 @@ export const SUBJECTS: Subject[] = [
   { id: 'discrete', name: 'Discrete Math', blurb: 'Sets, counting, recurrences, Big-O', requires: ['proofs'], chapters: discreteChapters },
   { id: 'graphs', name: 'Graph Theory', blurb: 'Search, shortest paths, trees, colouring, flows', requires: ['discrete'], chapters: graphChapters },
   { id: 'numtheory', name: 'Number Theory', blurb: 'Primes, gcd, modular arithmetic, RSA', requires: ['discrete'], chapters: numberTheoryChapters },
-  { id: 'prob', name: 'Probability & Statistics', blurb: 'Bayes, distributions, the normal curve, confidence intervals', requires: ['discrete', 'calculus'], chapters: probabilityChapters },
+  { id: 'prob', name: 'Probability & Statistics', blurb: 'Bayes, distributions, the normal curve, confidence intervals', requires: [], chapters: probabilityChapters },
 ];
 
 export const SUBJECT_BY_ID = Object.fromEntries(SUBJECTS.map((s) => [s.id, s])) as Record<string, Subject>;

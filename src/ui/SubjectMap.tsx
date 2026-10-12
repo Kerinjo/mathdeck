@@ -10,8 +10,9 @@ const NARROW = { w: 150, h: 58, gapAcross: 40, gapAlong: 10 };
 
 /**
  * Columns: each subject sits as late as it can, one column before the earliest subject that builds on it,
- * so arrows stay short. Subjects nothing builds on keep their earliest column; unconnected ones go first.
+ * so arrows stay short. Subjects nothing builds on keep their earliest column.
  * Rows: the last column is spread evenly; every other subject is centred on the subjects it leads to.
+ * Stand-alone subjects (no arrows either way) share their own row underneath, left to right.
  * Returns fractional slots: col along the reading direction, row across it.
  */
 export function layout(subjects: Subject[]) {
@@ -48,17 +49,14 @@ export function layout(subjects: Subject[]) {
     for (const p of placed) row[p.s.id] = p.y!;
   }
 
-  // Unconnected subjects fill the first free whole-number slots of the first column.
-  const taken = linked.filter((s) => col[s.id] === 0).map((s) => row[s.id]);
-  let slot = 0;
-  for (const s of subjects.filter(isolated)) {
-    while (taken.some((y) => Math.abs(y - slot) < 1)) slot++;
-    col[s.id] = 0;
-    row[s.id] = slot;
-    taken.push(slot);
-  }
-  const top = Math.min(...Object.values(row));
-  for (const id in row) row[id] -= top;
+  const top = linked.length ? Math.min(...linked.map((s) => row[s.id])) : 0;
+  for (const s of linked) row[s.id] -= top;
+  const below = linked.length ? Math.ceil(Math.max(...linked.map((s) => row[s.id]))) + 1 : 0;
+  const perRow = linked.length ? last + 1 : Infinity;
+  subjects.filter(isolated).forEach((s, i) => {
+    col[s.id] = i % perRow;
+    row[s.id] = below + Math.floor(i / perRow);
+  });
   return { col, row };
 }
 
