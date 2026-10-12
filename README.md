@@ -71,19 +71,29 @@ this chapter"**. Session length and review size are in Settings.
 | `3/8`, `-1/2`, `pi/4`, `sqrt(2)/2` | exact numbers |
 | `inf` | ∞ |
 | `1, -2` | lists (e.g. eigenvalues, critical points), any order |
+| `{1, 4, 7}`, `{}` | sets; `{}` is the empty set |
+| `~p \| (q & r)`, `p -> q` | logic: `~ ! not`, `& and`, `\| or`, `-> =>`, `<-> <=>` |
+| `A, C, B` or `ACB` | vertex orders and paths in graphs |
 
 A live preview under the answer box shows how your input was read.
 
 ## Content
 
-**Calculus:** 1 Limits · 2 Derivatives · 3 Applications of derivatives · 4 Integrals (+ going deeper: improper
-integrals) · 5 Series · 6 Multivariable calculus. 16 sections.
+Seven subjects. The Subjects page shows how they build on each other: Logic → Proofs → Discrete Math → Graph Theory
+and Number Theory; Calculus and Linear Algebra stand on their own.
 
-**Linear Algebra:** 1 Vectors · 2 Linear systems · 3 Matrices and linear maps · 4 Determinants · 5 Vector spaces ·
-6 Eigenvalues (+ going deeper: diagonalization and matrix powers) · 7 Orthogonality. 14 sections.
+| Subject | Chapters |
+|---|---|
+| **Calculus** | Limits · Derivatives · Applications of derivatives · Integrals (+ improper integrals) · Series · Multivariable |
+| **Linear Algebra** | Vectors · Linear systems · Matrices and linear maps · Determinants · Vector spaces · Eigenvalues (+ diagonalization) · Orthogonality |
+| **Logic** | Propositions and connectives · Equivalence and normal forms · Quantifiers · Arguments |
+| **Proofs** | Direct proof · Contrapositive and contradiction · Induction · Sets and functions (self-rated, with model proofs) |
+| **Discrete Math** | Sets, functions and relations · Counting · Recurrences · Asymptotics |
+| **Graph Theory** | Graph basics · Paths and traversal · Trees · Colouring, planarity and matching (with drawn graphs) |
+| **Number Theory** | Divisibility · Modular arithmetic · Fermat, Euler and RSA |
 
-**Not built yet:** Probability, Graph Theory, Discrete Math, Number Theory. Proofs are left out on purpose, because
-they can't be graded automatically.
+Answer types: expressions, numbers, lists, sets, matrices/vectors, logical formulas (any equivalent formula, optionally
+in a required shape such as CNF), vertex sequences, multiple choice, and self-rated proofs.
 
 ## Adding content
 

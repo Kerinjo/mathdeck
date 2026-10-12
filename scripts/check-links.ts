@@ -5,14 +5,20 @@ const urls = new Map<string, string[]>();
 for (const s of ALL_SKILLS) for (const r of s.learn.resources) urls.set(r.url, [...(urls.get(r.url) ?? []), s.id]);
 for (const c of CHAPTERS) for (const r of c.resources) urls.set(r.url, [...(urls.get(r.url) ?? []), c.id]);
 
+async function probe(url: string) {
+  try {
+    const res = await fetch(url, { redirect: 'follow', headers: { 'user-agent': 'Mozilla/5.0 mathdeck-link-check' } });
+    return { url, status: res.status };
+  } catch (e) {
+    return { url, status: 0, error: (e as Error).message };
+  }
+}
+
+// Retry once: a burst of parallel requests occasionally times out on slow sites.
 const results = await Promise.all(
   [...urls.keys()].map(async (url) => {
-    try {
-      const res = await fetch(url, { redirect: 'follow', headers: { 'user-agent': 'Mozilla/5.0 mathdeck-link-check' } });
-      return { url, status: res.status };
-    } catch (e) {
-      return { url, status: 0, error: (e as Error).message };
-    }
+    const first = await probe(url);
+    return first.status >= 200 && first.status < 400 ? first : probe(url);
   }),
 );
 

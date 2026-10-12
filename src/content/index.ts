@@ -4,6 +4,7 @@ import { discreteChapters } from './discrete';
 import { graphChapters } from './graphs';
 import { linalgChapters } from './linalg';
 import { logicChapters } from './logic';
+import { numberTheoryChapters } from './numtheory';
 import { proofsChapters } from './proofs';
 
 export const SUBJECTS: Subject[] = [
@@ -13,6 +14,7 @@ export const SUBJECTS: Subject[] = [
   { id: 'proofs', name: 'Proofs', blurb: 'Direct, contradiction, induction, sets and functions', requires: ['logic'], chapters: proofsChapters },
   { id: 'discrete', name: 'Discrete Math', blurb: 'Sets, counting, recurrences, Big-O', requires: ['proofs'], chapters: discreteChapters },
   { id: 'graphs', name: 'Graph Theory', blurb: 'Search, shortest paths, trees, colouring, flows', requires: ['discrete'], chapters: graphChapters },
+  { id: 'numtheory', name: 'Number Theory', blurb: 'Primes, gcd, modular arithmetic, RSA', requires: ['discrete'], chapters: numberTheoryChapters },
 ];
 
 export const SUBJECT_BY_ID = Object.fromEntries(SUBJECTS.map((s) => [s.id, s])) as Record<string, Subject>;

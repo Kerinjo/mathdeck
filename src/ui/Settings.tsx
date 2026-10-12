@@ -81,6 +81,9 @@ export function Settings() {
             ['arctan(x), asin(x)', 'inverse trig'],
             ['3/8, -1/2, pi/4, sqrt(2)/2', 'exact numbers'],
             ['inf', '∞'],
+            ['{1, 4, 7}, {}', 'sets ({} is empty)'],
+            ['~p | (q & r), p -> q', 'logic: ~ not, & and, | or, -> implies, <-> iff'],
+            ['A, C, B or ACB', 'vertex orders and paths'],
             ['+ C', 'optional on antiderivatives'],
           ].map(([a, b]) => (
             <tr key={a}>
