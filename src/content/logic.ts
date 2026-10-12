@@ -21,6 +21,7 @@ import {
   type Kind,
 } from '../core/logic';
 import type { Chapter, Problem, Resource, Rng, Skill } from '../core/types';
+import { satisfiability, translate } from './logic-deeper';
 
 // ---------------------------------------------------------------------------
 // Resources
@@ -825,7 +826,7 @@ export const logicChapters: Chapter[] = [
     why: 'Simplifying conditions, De Morgan in code, and CNF as the input of SAT solvers that power verification and scheduling tools.',
     resources: [wiki('Logical_equivalence', 'Logical equivalence'), wiki('Conjunctive_normal_form', 'Conjunctive normal form'), mcs],
     skills: [tautologies, equivalence, normalForms],
-    deeper: [],
+    deeper: [satisfiability],
   },
   {
     id: 'logic.ch.quant',
@@ -834,7 +835,7 @@ export const logicChapters: Chapter[] = [
     why: 'Definitions in mathematics (limits, continuity, Big-O) are nested quantifiers. Negating them correctly is how you prove something fails.',
     resources: [levin('sec_intro-statements', 'Mathematical Statements'), wiki('Quantifier_(logic)', 'Quantifier (logic)'), forallx],
     skills: [quantifiers, negation],
-    deeper: [],
+    deeper: [translate],
   },
   {
     id: 'logic.ch.args',

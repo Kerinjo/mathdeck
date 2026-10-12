@@ -2,6 +2,7 @@ import { Q } from '../core/frac';
 import { coef, mono, poly, signed, st, sum, t } from '../core/fmt';
 import type { Chapter, Problem, Resource, Rng, Skill } from '../core/types';
 import { distinct, fact } from './helpers';
+import { pigeonhole, structural } from './logic-deeper';
 
 // Every card here is self-rated: prove it on paper, reveal the model proof, then rate how it went.
 // Statements come in families with varying numbers, and the model proofs are written out for each.
@@ -773,7 +774,7 @@ export const proofsChapters: Chapter[] = [
     why: 'Irrationality, infinitude of primes, impossibility results and lower bounds in computer science are all proofs by contradiction.',
     resources: [bookOfProof, wiki('Proof_by_contradiction', 'Proof by contradiction'), wiki('Contraposition', 'Contraposition')],
     skills: [contrapositive, contradiction],
-    deeper: [],
+    deeper: [pigeonhole],
   },
   {
     id: 'proofs.ch.induction',
@@ -782,7 +783,7 @@ export const proofsChapters: Chapter[] = [
     why: 'Induction is how you prove loops and recursive algorithms correct and analyse their running time.',
     resources: [levin('sec_seq-induction', 'Proof by Induction'), wiki('Mathematical_induction', 'Mathematical induction'), mcs],
     skills: [induction, strong],
-    deeper: [],
+    deeper: [structural],
   },
   {
     id: 'proofs.ch.sets',
