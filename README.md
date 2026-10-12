@@ -13,31 +13,44 @@ npm run build        # static build in dist/ (open dist/index.html via any stati
 
 ## How it works
 
-- **Skills, not cards.** Each skill (e.g. *Integration by parts*) has 3 difficulty levels, each with a random generator.
+Each subject is organised like a book: **chapters** in order, each made of **sections** (skills). A section has 3
+difficulty levels, and every problem is generated fresh.
+
+There are two ways to use it:
+
+- **Study** a chapter or a single section. This is how you make progress. You work through sections in book order,
+  and a section counts as **cleared** after 3 correct answers in a row. Due reviews from the same chapter are mixed in,
+  and missed problems come back a few problems later. A session is saved after every answer: **Pause** and come back
+  later to the exact problem you left.
+- **Review**: a mixed set from every chapter you've studied, picked from your history. Weak sections come first and
+  return often; easy ones fade out. Problems are interleaved across chapters. Reviews aren't resumable: each one is
+  built from whatever is due at that moment.
+
+Everything else:
+
 - **Grading** compares your expression numerically against the expected one at many points, so any equivalent
   form is accepted (`2(x+1)` = `2x+2`, `+ C` optional, `ln|x|` fine). Matrices are entered in a grid; eigenvectors and
   null-space vectors accept any non-zero multiple.
-- **Scheduling** (`src/core/scheduler.ts`):
-  - correct → interval grows (1d → 3d → 8d → 20d …)
-  - wrong → back in the same session after a few cards, then tomorrow
-  - 3 correct on separate days → next level unlocks
-  - a miss right after a level-up drops you back one level to rebuild
-- **Prerequisites:** a skill unlocks when its prerequisites are reliable (level 1 done). You can also start any skill
-  manually or mark it as "I already know this" on the Skills page.
-- **Stuck?** "I don't know" shows the worked solution, a short summary and curated links (3Blue1Brown, Paul's Online
-  Notes, OpenStax, Interactive Linear Algebra, MIT 18.06).
+- **Scheduling** (`src/core/scheduler.ts`): each section has an *ease* that learns from your answers. A correct answer
+  multiplies the interval by the ease (1d → 3d → ~6d → ~15d …). A miss brings the section back within minutes and
+  lowers its ease, so it grows more slowly afterwards. 3 correct on separate days unlocks the next level. A miss right
+  after a level-up drops you back one level to rebuild.
+- **Nothing is locked.** Open any chapter at any time. "I already know this" (for a section or a whole chapter)
+  marks it cleared, and it gets checked at its top level in a review 3 days later.
+- **Learning material is optional.** Every chapter has an *About this chapter* panel (what it covers, why it matters,
+  links), and every problem has a 📖 Intro button with a summary and links. A wrong answer shows the worked
+  solution and the intro automatically.
+- **Going deeper**: optional sections at the end of some chapters. Switch one on to include it in chapter study and
+  reviews. They never count toward chapter progress.
+- **Practice** (in a section's details): drill any level without affecting anything.
 
-- **Weak skills:** a skill missed twice in a row is listed on the dashboard with its learning links.
-- **Practice mode:** on the Skills page you can drill any skill at any level; it doesn't affect the schedule.
-
-Progress is stored in the browser's localStorage. Use Settings → Export backup.
+Progress is stored in the browser's localStorage. Use Settings → Export backup. Older backups import fine.
 
 ## Getting started
 
-Only skills with no prerequisites are unlocked at first (*Evaluating limits*, *Power rule*, *Vector arithmetic*), and
-at most 3 new skills a day are added to your reviews (change this in Settings). If you already know the basics, open
-the Skills page and use **"I already know this"**. The skill then counts as reliable, unlocks the skills that depend on
-it, and comes back in 3 days at its hardest level to check.
+The **Today** page has two buttons: **Review** (what's due) and **Study** (resume your paused session, or continue
+with the next chapter of the subject you used last). If basics are too easy, open a chapter and use **"I already know
+this chapter"**. Session length and review size are in Settings.
 
 ## Typing answers
 
@@ -56,20 +69,21 @@ A live preview under the answer box shows how your input was read.
 
 ## Content
 
-**Calculus (16):** evaluating limits, L'Hôpital's rule, power rule, product/quotient rules, chain rule, implicit
-differentiation, critical points and extrema, basic antiderivatives, definite integrals and area, substitution,
-integration by parts, partial fractions, infinite series, Taylor and power series, partial derivatives and gradients,
-double integrals.
+**Calculus:** 1 Limits · 2 Derivatives · 3 Applications of derivatives · 4 Integrals (+ going deeper: improper
+integrals) · 5 Series · 6 Multivariable calculus. 16 sections.
 
-**Linear Algebra (14):** vector arithmetic, length/angle/projection, matrix multiplication, matrix inverse, linear
-systems, RREF, determinants, determinant properties, span/independence/coordinates, rank and null space, linear
-transformations, eigenvalues and eigenvectors, Gram–Schmidt and least squares, quadratic forms and definiteness.
+**Linear Algebra:** 1 Vectors · 2 Linear systems · 3 Matrices and linear maps · 4 Determinants · 5 Vector spaces ·
+6 Eigenvalues (+ going deeper: diagonalization and matrix powers) · 7 Orthogonality. 14 sections.
 
 **Not built yet:** Probability, Graph Theory, Discrete Math, Number Theory. Proofs are left out on purpose, because
 they can't be graded automatically.
 
 ## Adding content
 
-Skills live in `src/content/*.ts`. A level is a `generate(rng) => Problem` function; give it a `selfCheck` when it can
-be verified independently (the tests run every generator 60× and check that the expected answer passes the grader,
-the TeX renders and the self-check holds). To add a subject, create a file and register it in `src/content/index.ts`.
+Content lives in `src/content/*.ts`: each file exports its chapters (`about`, `why`, links, `skills`, `deeper`). A
+level is a `generate(rng) => Problem` function; give it a `selfCheck` when it can be verified independently. The tests
+run every generator 60× and check that the expected answer passes the grader, the TeX renders and the self-check
+holds. To add a subject, create a file and register it in `src/content/index.ts`.
+
+Exercises are generated by code written for this project; nothing is copied from textbooks. Learning resources are
+links only.

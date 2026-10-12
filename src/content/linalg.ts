@@ -20,7 +20,7 @@ import {
   type Mat,
 } from '../core/frac';
 import { coef, signed, sum, t } from '../core/fmt';
-import type { Problem, Resource, Rng, Skill } from '../core/types';
+import type { Chapter, Problem, Resource, Rng, Skill } from '../core/types';
 import { distinct } from './helpers';
 
 const ila = (page: string, title: string): Resource => ({
@@ -89,8 +89,6 @@ function withNiceRref(r: Rng, rows: number, cols: number, rk: number): { a: Mat;
 
 const vectors: Skill = {
   id: 'la.vectors',
-  subject: 'linalg',
-  topic: 'Vectors',
   name: 'Vector arithmetic',
   prereqs: [],
   levels: [
@@ -161,8 +159,6 @@ const vectors: Skill = {
 
 const geometry: Skill = {
   id: 'la.geometry',
-  subject: 'linalg',
-  topic: 'Vectors',
   name: 'Length, angle and projection',
   prereqs: ['la.vectors'],
   levels: [
@@ -242,8 +238,6 @@ const geometry: Skill = {
 
 const matmul: Skill = {
   id: 'la.matmul',
-  subject: 'linalg',
-  topic: 'Matrices',
   name: 'Matrix multiplication',
   prereqs: ['la.vectors'],
   levels: [
@@ -281,8 +275,6 @@ function product(r: Rng, m: number, n: number, p: number, lo = -4, hi = 4): Prob
 
 const systems: Skill = {
   id: 'la.systems',
-  subject: 'linalg',
-  topic: 'Linear systems',
   name: 'Solving linear systems',
   prereqs: ['la.vectors'],
   levels: [
@@ -350,8 +342,6 @@ function solveSystem(r: Rng, n: number): Problem {
 
 const rrefSkill: Skill = {
   id: 'la.rref',
-  subject: 'linalg',
-  topic: 'Linear systems',
   name: 'Reduced row echelon form',
   prereqs: ['la.systems'],
   levels: [
@@ -384,8 +374,6 @@ function rrefProblem(r: Rng, rows: number, cols: number, rk: number): Problem {
 
 const determinant: Skill = {
   id: 'la.det',
-  subject: 'linalg',
-  topic: 'Determinants',
   name: 'Computing determinants',
   prereqs: ['la.matmul'],
   levels: [
@@ -432,8 +420,6 @@ function detProblem(r: Rng, n: number, lo: number, hi: number, zeros = 0): Probl
 
 const detProps: Skill = {
   id: 'la.detprops',
-  subject: 'linalg',
-  topic: 'Determinants',
   name: 'Determinant properties',
   prereqs: ['la.det'],
   levels: [
@@ -513,10 +499,8 @@ const P = (n: number | Q) => (Q.of(n).n < 0 ? `(${Q.of(n).tex()})` : Q.of(n).tex
 
 const inverseSkill: Skill = {
   id: 'la.inverse',
-  subject: 'linalg',
-  topic: 'Matrices',
   name: 'Matrix inverse',
-  prereqs: ['la.det', 'la.rref'],
+  prereqs: ['la.matmul', 'la.rref'],
   levels: [
     {
       name: '2×2',
@@ -585,8 +569,6 @@ const inverseSkill: Skill = {
 
 const independence: Skill = {
   id: 'la.independence',
-  subject: 'linalg',
-  topic: 'Vector spaces',
   name: 'Span, independence and coordinates',
   prereqs: ['la.rref'],
   levels: [
@@ -673,8 +655,6 @@ const independence: Skill = {
 
 const rankSkill: Skill = {
   id: 'la.rank',
-  subject: 'linalg',
-  topic: 'Vector spaces',
   name: 'Rank and null space',
   prereqs: ['la.rref'],
   levels: [
@@ -767,8 +747,6 @@ function namedTransform(r: Rng): { name: string; m: Mat } {
 
 const transforms: Skill = {
   id: 'la.transform',
-  subject: 'linalg',
-  topic: 'Linear transformations',
   name: 'Matrices of linear transformations',
   prereqs: ['la.matmul'],
   levels: [
@@ -856,8 +834,6 @@ const charPoly2 = (A: Mat) =>
 
 const eigen: Skill = {
   id: 'la.eigen',
-  subject: 'linalg',
-  topic: 'Eigenvalues',
   name: 'Eigenvalues and eigenvectors',
   prereqs: ['la.det'],
   levels: [
@@ -934,8 +910,6 @@ const eigen: Skill = {
 
 const orthogonal: Skill = {
   id: 'la.orthogonal',
-  subject: 'linalg',
-  topic: 'Orthogonality',
   name: 'Gram–Schmidt and least squares',
   prereqs: ['la.geometry', 'la.systems'],
   levels: [
@@ -1051,8 +1025,6 @@ function symmetricWithClass(r: Rng, n: number) {
 
 const definiteness: Skill = {
   id: 'la.definite',
-  subject: 'linalg',
-  topic: 'Eigenvalues',
   name: 'Quadratic forms and definiteness',
   prereqs: ['la.eigen'],
   levels: [
@@ -1121,19 +1093,167 @@ const definiteness: Skill = {
   },
 };
 
-export const linalgSkills: Skill[] = [
-  vectors,
-  geometry,
-  matmul,
-  systems,
-  rrefSkill,
-  determinant,
-  detProps,
-  inverseSkill,
-  independence,
-  rankSkill,
-  transforms,
-  eigen,
-  orthogonal,
-  definiteness,
+// ---------------------------------------------------------------------------
+// Going deeper
+
+const matPow = (a: Mat, k: number): Mat => (k === 0 ? identity(a.length) : matMul(a, matPow(a, k - 1)));
+const diagMat = (d: number[]) => mat(d.map((x, i) => d.map((_, j) => (i === j ? x : 0))));
+
+const diagonalization: Skill = {
+  id: 'la.diagpow',
+  name: 'Diagonalization and matrix powers',
+  prereqs: ['la.eigen'],
+  levels: [
+    {
+      name: 'powers from PDP⁻¹',
+      generate(r) {
+        for (;;) {
+          const P = unimodular(r, 2, 3, 2);
+          const d = distinct(r, 2, -2, 3);
+          const k = r.int(3, 5);
+          const A = matMul(matMul(P, diagMat(d)), inverse(P));
+          const Ak = matMul(matMul(P, diagMat(d.map((x) => x ** k))), inverse(P));
+          if (maxAbs(Ak) > 400 || isIdentity(P)) continue;
+          return {
+            prompt: `$A = PDP^{-1}$ with $P = ${matTex(P)}$, $D = ${matTex(diagMat(d))}$ and $P^{-1} = ${matTex(inverse(P))}$. Compute $A^{${k}}$.`,
+            answer: matrixAns(Ak),
+            solution: [
+              `$A^{${k}} = PD^{${k}}P^{-1}$: the inner $P^{-1}P$ pairs cancel.`,
+              `$D^{${k}} = ${matTex(diagMat(d.map((x) => x ** k)))}$ (just power the diagonal).`,
+              `$A^{${k}} = ${matTex(Ak)}$`,
+            ],
+            selfCheck: () => matStrings(matPow(A, k)).join() === matStrings(Ak).join(),
+          };
+        }
+      },
+    },
+    {
+      name: 'diagonalizable or not?',
+      generate(r) {
+        const want = r.next() < 0.5;
+        for (;;) {
+          const [a, e] = distinct(r, 2, -3, 4);
+          const A = mat([
+            [a, r.int(-2, 2), r.int(-2, 2)],
+            [0, a, r.int(-2, 2)],
+            [0, 0, e],
+          ]);
+          const geo = (l: number) => 3 - rank(A.map((row, i) => row.map((x, j) => (i === j ? x.sub(l) : x))));
+          const ga = geo(a);
+          const diag = ga === 2;
+          if (diag !== want) continue;
+          return {
+            prompt: `Is $A = ${matTex(A)}$ diagonalizable?`,
+            answer: { kind: 'choice', options: ['Yes', 'No'], correct: diag ? 0 : 1 },
+            solution: [
+              `Triangular, so the eigenvalues are the diagonal: $${a}$ (twice) and $${e}$.`,
+              `Diagonalizable iff each eigenvalue has as many independent eigenvectors as its multiplicity. For $\\lambda = ${a}$: $\\dim\\operatorname{Nul}(A - ${P(a)}I) = 3 - \\operatorname{rank} = ${ga}$.`,
+              diag ? `$${ga} = 2$, so yes.` : `$${ga} < 2$: not enough eigenvectors, so no.`,
+            ],
+          };
+        }
+      },
+    },
+    {
+      name: 'compute a power from scratch',
+      generate(r) {
+        for (;;) {
+          const P = unimodular(r, 2, 3, 2);
+          const d = distinct(r, 2, -1, 2);
+          const k = r.int(4, 6);
+          const A = matMul(matMul(P, diagMat(d)), inverse(P));
+          const Ak = matPow(A, k);
+          if (maxAbs(Ak) > 500 || maxAbs(A) > 8 || isIdentity(P)) continue;
+          const v = transpose(P);
+          return {
+            prompt: `Compute $${matTex(A)}^{${k}}$.`,
+            answer: matrixAns(Ak),
+            inputHint: 'Hint: diagonalize first.',
+            solution: [
+              `Eigenvalues: $${d.join(',\\ ')}$ (trace $${d[0] + d[1]}$, det $${d[0] * d[1]}$).`,
+              `Eigenvectors: $${vecTex(v[0])}$ for $${d[0]}$, $${vecTex(v[1])}$ for $${d[1]}$, so $P = ${matTex(P)}$, $P^{-1} = ${matTex(inverse(P))}$.`,
+              `$A^{${k}} = P\\,${matTex(diagMat(d.map((x) => x ** k)))}\\,P^{-1} = ${matTex(Ak)}$`,
+            ],
+          };
+        }
+      },
+    },
+  ],
+  learn: {
+    summary:
+      'If $A$ has $n$ independent eigenvectors, put them in the columns of $P$ and the eigenvalues on the diagonal of $D$: then $A = PDP^{-1}$ and $A^k = PD^kP^{-1}$, where $D^k$ just powers the diagonal. A repeated eigenvalue with too few eigenvectors (a "defective" matrix) cannot be diagonalized. This is how linear recurrences such as Fibonacci get closed forms.',
+    resources: [
+      ila('diagonalization', 'Diagonalization'),
+      tb1b('eigenvalues', 'Eigenvectors and eigenvalues'),
+      strang,
+    ],
+  },
+};
+
+// ---------------------------------------------------------------------------
+
+export const linalgChapters: Chapter[] = [
+  {
+    id: 'la.ch.vectors',
+    title: 'Vectors',
+    about: 'Vectors as arrows and as lists of numbers: adding, scaling, dot and cross products, lengths, angles and projections.',
+    why: 'Everything in linear algebra is built on vectors. In computing they are points, colours, feature vectors and embeddings; the dot product is how similarity is measured.',
+    resources: [tb1b('vectors', 'Vectors, what even are they?'), ila('vectors', 'Vectors'), { kind: 'interactive', title: 'Immersive Linear Algebra: Vectors', url: 'http://immersivemath.com/ila/ch02_vectors/ch02.html' }],
+    skills: [vectors, geometry],
+    deeper: [],
+  },
+  {
+    id: 'la.ch.systems',
+    title: 'Linear systems',
+    about: 'Solving systems of linear equations by row reduction, and the reduced row echelon form that summarises them.',
+    why: 'Row reduction is the workhorse algorithm of the subject: almost every later question (inverse, rank, null space, independence) is answered by row reducing something.',
+    resources: [ila('systems-of-eqns', 'Systems of Linear Equations'), ila('row-reduction', 'Row Reduction'), strang],
+    skills: [systems, rrefSkill],
+    deeper: [],
+  },
+  {
+    id: 'la.ch.matrices',
+    title: 'Matrices and linear maps',
+    about: 'Matrix multiplication, inverses, and matrices as transformations of space (rotations, reflections, shears).',
+    why: 'Matrices are how graphics engines move objects, how neural network layers work, and how systems of equations are solved in one step.',
+    resources: [tb1b('linear-transformations', 'Linear transformations and matrices'), tb1b('matrix-multiplication', 'Matrix multiplication as composition'), ila('matrix-multiplication', 'Matrix Multiplication')],
+    skills: [matmul, inverseSkill, transforms],
+    deeper: [],
+  },
+  {
+    id: 'la.ch.determinants',
+    title: 'Determinants',
+    about: 'Computing determinants and the rules for how they behave under products, inverses and row operations.',
+    why: 'The determinant tells you at a glance whether a matrix is invertible and how much it scales area or volume (which is why it appears in change of variables).',
+    resources: [tb1b('determinant', 'The determinant'), ila('determinants-definitions-properties', 'Determinants: Definition')],
+    skills: [determinant, detProps],
+    deeper: [],
+  },
+  {
+    id: 'la.ch.spaces',
+    title: 'Vector spaces',
+    about: 'Span, linear independence, bases and coordinates, rank and null space.',
+    why: 'These ideas explain when a system has a unique solution, how many degrees of freedom data really has, and what a "basis" or "dimension" means.',
+    resources: [tb1b('span', 'Linear combinations, span, and basis vectors'), tb1b('inverse-matrices', 'Inverse matrices, column space and null space'), ila('linear-independence', 'Linear Independence')],
+    skills: [independence, rankSkill],
+    deeper: [],
+  },
+  {
+    id: 'la.ch.eigen',
+    title: 'Eigenvalues',
+    about: 'Eigenvalues and eigenvectors, and what they say about a matrix, including when a symmetric matrix is positive definite.',
+    why: 'Eigenvectors are the directions a transformation only stretches. They drive PageRank, PCA, stability analysis and the second-derivative test in many variables.',
+    resources: [tb1b('eigenvalues', 'Eigenvectors and eigenvalues'), ila('eigenvectors', 'Eigenvalues and Eigenvectors'), strang],
+    skills: [eigen, definiteness],
+    deeper: [diagonalization],
+  },
+  {
+    id: 'la.ch.orthogonality',
+    title: 'Orthogonality',
+    about: 'Orthogonal projections, Gram–Schmidt, and least squares for systems with no exact solution.',
+    why: 'Least squares is linear regression. Orthogonal bases make computations numerically stable and are the basis of QR decomposition.',
+    resources: [ila('projections', 'Orthogonal Projection'), ila('least-squares', 'The Method of Least Squares'), strang],
+    skills: [orthogonal],
+    deeper: [],
+  },
 ];

@@ -1,8 +1,9 @@
 // Checks every learning resource URL. Run: npm run check-links
-import { ALL_SKILLS } from '../src/content';
+import { ALL_SKILLS, CHAPTERS } from '../src/content';
 
 const urls = new Map<string, string[]>();
 for (const s of ALL_SKILLS) for (const r of s.learn.resources) urls.set(r.url, [...(urls.get(r.url) ?? []), s.id]);
+for (const c of CHAPTERS) for (const r of c.resources) urls.set(r.url, [...(urls.get(r.url) ?? []), c.id]);
 
 const results = await Promise.all(
   [...urls.keys()].map(async (url) => {

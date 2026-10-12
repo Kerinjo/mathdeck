@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { answerTex, check } from '../core/check';
-import { isReliable } from '../core/scheduler';
 import { useData } from '../core/store';
 import type { Problem, Skill } from '../core/types';
-import { SKILLS, SUBJECTS } from '../content';
+import { CHAPTER_OF, chapterNumber, SKILLS, SUBJECT_OF_CHAPTER } from '../content';
 import { AnswerInput, emptyResponse, type ResponseValue } from './AnswerInput';
 import { Math, Text } from './Tex';
 
@@ -65,13 +64,15 @@ export function Card({ skill, level, problem, onAnswered, onNext, feedback, head
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  const subject = SUBJECTS.find((s) => s.id === skill.subject)!;
+  const chapter = CHAPTER_OF[skill.id];
+  const subject = SUBJECT_OF_CHAPTER[chapter.id];
 
   return (
     <div className="card">
       <div className="card-head">
         <div className="crumbs">
-          {subject.name} <span className="sep">›</span> {skill.topic} <span className="sep">›</span> <b>{skill.name}</b>
+          {subject.name} <span className="sep">›</span> {chapterNumber(chapter)}. {chapter.title} <span className="sep">›</span>{' '}
+          <b>{skill.name}</b>
         </div>
         <div className="level-tag">
           Level {level + 1}/{skill.levels.length} · {skill.levels[level].name}
@@ -99,6 +100,9 @@ export function Card({ skill, level, problem, onAnswered, onNext, feedback, head
 
       {!result ? (
         <div className="actions">
+          <button className={`ghost intro-btn ${showLearn ? 'active' : ''}`} onClick={() => setShowLearn(!showLearn)}>
+            📖 Intro
+          </button>
           <button className="ghost" onClick={() => finish(false, true)}>
             I don't know
           </button>
@@ -108,7 +112,13 @@ export function Card({ skill, level, problem, onAnswered, onNext, feedback, head
             </button>
           )}
         </div>
-      ) : (
+      ) : null}
+      {!result && showLearn && (
+        <div className="intro-panel">
+          <LearnPanel skill={skill} />
+        </div>
+      )}
+      {result && (
         <>
           <div className={`verdict ${result.ok ? 'ok' : 'bad'}`}>
             <div className="verdict-main">
@@ -132,7 +142,7 @@ export function Card({ skill, level, problem, onAnswered, onNext, feedback, head
               ))}
             </ol>
           </Disclosure>
-          <Disclosure open={showLearn} onToggle={setShowLearn} label="Learn this topic">
+          <Disclosure open={showLearn} onToggle={setShowLearn} label="Learn this section">
             <LearnPanel skill={skill} />
           </Disclosure>
 
@@ -163,7 +173,7 @@ const KIND: Record<string, string> = { video: 'Video', article: 'Notes', book: '
 
 export function LearnPanel({ skill }: { skill: Skill }) {
   const { states } = useData();
-  const weakPrereqs = skill.prereqs.filter((p) => !isReliable(states[p]));
+  const weakPrereqs = skill.prereqs.filter((p) => !states[p]?.cleared);
   return (
     <div className="learn">
       <p className="summary">
@@ -193,7 +203,7 @@ export function LearnPanel({ skill }: { skill: Skill }) {
           ))}
           {weakPrereqs.length > 0 && (
             <div className="weak-note">
-              You haven't made {weakPrereqs.map((p) => SKILLS[p].name).join(' / ')} reliable yet. If this feels
+              You haven't cleared {weakPrereqs.map((p) => SKILLS[p].name).join(' / ')} yet. If this feels
               hard, the gap may be there.
             </div>
           )}

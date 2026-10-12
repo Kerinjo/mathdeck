@@ -1,29 +1,66 @@
 import { useSyncExternalStore } from 'react';
-import type { LogEntry, SkillState } from './scheduler';
+import { upgradeState, type LogEntry, type SkillState } from './scheduler';
+import type { SessionState } from './session';
 
 export interface Settings {
-  newPerDay: number;
+  /** Problems per study session (you can always keep going). */
+  sessionLength: number;
+  /** Most reviews served in one review session. */
+  reviewCap: number;
 }
 
 export interface Data {
-  version: 1;
+  version: 2;
   states: Record<string, SkillState>;
   log: LogEntry[];
+  /** Saved study sessions by key ("chapter:<id>" or "skill:<id>"), so you can resume. */
+  sessions: Record<string, SessionState>;
+  /** "Going deeper" sections you switched on. */
+  deeper: Record<string, boolean>;
   settings: Settings;
 }
 
 const KEY = 'mathdeck:v1';
 const MAX_LOG = 50_000;
 
-const empty = (): Data => ({ version: 1, states: {}, log: [], settings: { newPerDay: 3 } });
+const empty = (): Data => ({
+  version: 2,
+  states: {},
+  log: [],
+  sessions: {},
+  deeper: {},
+  settings: { sessionLength: 10, reviewCap: 30 },
+});
+
+/** Accepts any saved version and returns current-format data. */
+function migrate(raw: any): Data {
+  const d = empty();
+  if (!raw || typeof raw !== 'object' || typeof raw.states !== 'object' || !Array.isArray(raw.log)) {
+    throw new Error('Not a mathdeck backup');
+  }
+  const now = Date.now();
+  return {
+    ...d,
+    states: Object.fromEntries(Object.entries(raw.states).map(([k, v]) => [k, upgradeState(v as Partial<SkillState>, now)])),
+    log: raw.log,
+    sessions: raw.version >= 2 ? (raw.sessions ?? {}) : {},
+    deeper: raw.deeper ?? {},
+    settings: { ...d.settings, ...(raw.version >= 2 ? raw.settings : {}) },
+  };
+}
 
 function load(): Data {
+  let raw: string | null = null;
   try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return empty();
-    const d = JSON.parse(raw) as Data;
-    return { ...empty(), ...d, settings: { ...empty().settings, ...d.settings } };
+    raw = localStorage.getItem(KEY);
+    return raw ? migrate(JSON.parse(raw)) : empty();
   } catch {
+    // Never silently overwrite unreadable progress: park a copy before starting fresh.
+    try {
+      if (raw) localStorage.setItem(`${KEY}:unreadable-${Date.now()}`, raw);
+    } catch {
+      // ignore
+    }
     return empty();
   }
 }
@@ -58,14 +95,11 @@ export function useData(): Data {
   );
 }
 
-export function exportJson() {
-  return JSON.stringify(data, null, 2);
-}
+export const exportJson = () => JSON.stringify(data, null, 2);
 
 export function importJson(json: string) {
-  const d = JSON.parse(json) as Data;
-  if (d.version !== 1 || typeof d.states !== 'object' || !Array.isArray(d.log)) throw new Error('Not a mathdeck backup');
-  update(() => ({ ...empty(), ...d }));
+  const d = migrate(JSON.parse(json));
+  update(() => d);
 }
 
 export const reset = () => update(() => empty());

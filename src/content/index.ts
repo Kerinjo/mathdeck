@@ -1,12 +1,30 @@
-import type { Skill, Subject } from '../core/types';
-import { calculusSkills } from './calculus';
-import { linalgSkills } from './linalg';
+import type { Chapter, Skill, Subject } from '../core/types';
+import { calculusChapters } from './calculus';
+import { linalgChapters } from './linalg';
 
 export const SUBJECTS: Subject[] = [
-  { id: 'calculus', name: 'Calculus', skills: calculusSkills },
-  { id: 'linalg', name: 'Linear Algebra', skills: linalgSkills },
+  { id: 'calculus', name: 'Calculus', chapters: calculusChapters },
+  { id: 'linalg', name: 'Linear Algebra', chapters: linalgChapters },
 ];
 
-export const ALL_SKILLS: Skill[] = SUBJECTS.flatMap((s) => s.skills);
+export const CHAPTERS: Chapter[] = SUBJECTS.flatMap((s) => s.chapters);
+
+/** Every skill in book order: each chapter's main sections, then its deeper ones. */
+export const ALL_SKILLS: Skill[] = CHAPTERS.flatMap((c) => [...c.skills, ...c.deeper]);
 
 export const SKILLS: Record<string, Skill> = Object.fromEntries(ALL_SKILLS.map((s) => [s.id, s]));
+
+export const CHAPTER_BY_ID: Record<string, Chapter> = Object.fromEntries(CHAPTERS.map((c) => [c.id, c]));
+
+export const CHAPTER_OF: Record<string, Chapter> = Object.fromEntries(
+  CHAPTERS.flatMap((c) => [...c.skills, ...c.deeper].map((s) => [s.id, c])),
+);
+
+export const SUBJECT_OF_CHAPTER: Record<string, Subject> = Object.fromEntries(
+  SUBJECTS.flatMap((s) => s.chapters.map((c) => [c.id, s])),
+);
+
+export const isDeeper = (skillId: string) => CHAPTER_OF[skillId].deeper.some((s) => s.id === skillId);
+
+/** Chapter number within its subject, 1-based. */
+export const chapterNumber = (c: Chapter) => SUBJECT_OF_CHAPTER[c.id].chapters.indexOf(c) + 1;

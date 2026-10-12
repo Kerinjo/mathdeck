@@ -52,12 +52,26 @@ export interface Resource {
 
 export interface Skill {
   id: string;
-  subject: SubjectId;
-  topic: string;
   name: string;
+  /** Skills this one builds on. Only used for hints; nothing is ever locked. */
   prereqs: string[];
   levels: Level[];
+  /** Optional section intro: summary plus links. */
   learn: { summary: string; resources: Resource[] };
+}
+
+export interface Chapter {
+  id: string;
+  title: string;
+  /** What the chapter covers (mixed text). */
+  about: string;
+  /** Why it matters. */
+  why: string;
+  resources: Resource[];
+  /** Main sections, in book order. */
+  skills: Skill[];
+  /** Optional "going deeper" sections: opt-in, never required. */
+  deeper: Skill[];
 }
 
 export type SubjectId = 'calculus' | 'linalg';
@@ -65,5 +79,5 @@ export type SubjectId = 'calculus' | 'linalg';
 export interface Subject {
   id: SubjectId;
   name: string;
-  skills: Skill[];
+  chapters: Chapter[];
 }

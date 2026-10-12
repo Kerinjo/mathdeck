@@ -1,6 +1,6 @@
 import { Q } from '../core/frac';
 import { coef, mono, poly, signed, st, sum, t } from '../core/fmt';
-import type { Problem, Resource, Skill } from '../core/types';
+import type { Chapter, Problem, Resource, Skill } from '../core/types';
 import { distinct, fact, int, lin, P } from './helpers';
 import { integrate, integrate2, isDerivative, near, value } from './verify';
 
@@ -45,8 +45,6 @@ const diff = (f: string) => `Differentiate $f(x) = ${f}$.`;
 
 const limits: Skill = {
   id: 'calc.limits',
-  subject: 'calculus',
-  topic: 'Limits',
   name: 'Evaluating limits',
   prereqs: [],
   levels: [
@@ -135,8 +133,6 @@ const limits: Skill = {
 
 const power: Skill = {
   id: 'calc.power',
-  subject: 'calculus',
-  topic: 'Derivatives',
   name: 'Power rule',
   prereqs: [],
   levels: [
@@ -216,8 +212,6 @@ const power: Skill = {
 
 const product: Skill = {
   id: 'calc.product',
-  subject: 'calculus',
-  topic: 'Derivatives',
   name: 'Product and quotient rules',
   prereqs: ['calc.power'],
   levels: [
@@ -307,8 +301,6 @@ const product: Skill = {
 
 const chain: Skill = {
   id: 'calc.chain',
-  subject: 'calculus',
-  topic: 'Derivatives',
   name: 'Chain rule',
   prereqs: ['calc.power'],
   levels: [
@@ -468,8 +460,6 @@ const chain: Skill = {
 
 const implicit: Skill = {
   id: 'calc.implicit',
-  subject: 'calculus',
-  topic: 'Derivatives',
   name: 'Implicit differentiation',
   prereqs: ['calc.chain'],
   levels: [
@@ -556,8 +546,6 @@ const cubicWithRoots = (p: number, q: number, s: 1 | -1) => [2 * s, -3 * (p + q)
 
 const extrema: Skill = {
   id: 'calc.extrema',
-  subject: 'calculus',
-  topic: 'Applications of derivatives',
   name: 'Critical points and extrema',
   prereqs: ['calc.power'],
   levels: [
@@ -641,8 +629,6 @@ const extrema: Skill = {
 
 const lhopital: Skill = {
   id: 'calc.lhopital',
-  subject: 'calculus',
-  topic: 'Limits',
   name: "L'Hôpital's rule",
   prereqs: ['calc.limits', 'calc.chain'],
   levels: [
@@ -735,8 +721,6 @@ const lhopital: Skill = {
 
 const antideriv: Skill = {
   id: 'calc.antideriv',
-  subject: 'calculus',
-  topic: 'Integrals',
   name: 'Basic antiderivatives',
   prereqs: ['calc.power'],
   levels: [
@@ -822,8 +806,6 @@ const antideriv: Skill = {
 
 const definite: Skill = {
   id: 'calc.definite',
-  subject: 'calculus',
-  topic: 'Integrals',
   name: 'Definite integrals and area',
   prereqs: ['calc.antideriv'],
   levels: [
@@ -931,8 +913,6 @@ const definite: Skill = {
 
 const usub: Skill = {
   id: 'calc.usub',
-  subject: 'calculus',
-  topic: 'Integrals',
   name: 'Substitution',
   prereqs: ['calc.antideriv', 'calc.chain'],
   levels: [
@@ -1052,8 +1032,6 @@ const usub: Skill = {
 
 const parts: Skill = {
   id: 'calc.parts',
-  subject: 'calculus',
-  topic: 'Integrals',
   name: 'Integration by parts',
   prereqs: ['calc.antideriv', 'calc.product'],
   levels: [
@@ -1190,8 +1168,6 @@ const parts: Skill = {
 
 const pfrac: Skill = {
   id: 'calc.pfrac',
-  subject: 'calculus',
-  topic: 'Integrals',
   name: 'Partial fractions',
   prereqs: ['calc.usub'],
   levels: [
@@ -1271,8 +1247,6 @@ const pfrac: Skill = {
 
 const series: Skill = {
   id: 'calc.series',
-  subject: 'calculus',
-  topic: 'Series',
   name: 'Infinite series',
   prereqs: ['calc.limits'],
   levels: [
@@ -1368,8 +1342,6 @@ const series: Skill = {
 
 const taylor: Skill = {
   id: 'calc.taylor',
-  subject: 'calculus',
-  topic: 'Series',
   name: 'Taylor and power series',
   prereqs: ['calc.chain', 'calc.series'],
   levels: [
@@ -1473,8 +1445,6 @@ const taylor: Skill = {
 
 const partial: Skill = {
   id: 'calc.partial',
-  subject: 'calculus',
-  topic: 'Multivariable',
   name: 'Partial derivatives and gradients',
   prereqs: ['calc.chain'],
   levels: [
@@ -1562,8 +1532,6 @@ const partial: Skill = {
 
 const double: Skill = {
   id: 'calc.double',
-  subject: 'calculus',
-  topic: 'Multivariable',
   name: 'Double integrals',
   prereqs: ['calc.definite', 'calc.partial'],
   levels: [
@@ -1640,22 +1608,149 @@ const double: Skill = {
   },
 };
 
-export const calculusSkills: Skill[] = [
-  limits,
-  power,
-  product,
-  chain,
-  implicit,
-  extrema,
-  lhopital,
-  antideriv,
-  definite,
-  usub,
-  parts,
-  pfrac,
-  series,
-  taylor,
-  partial,
-  double,
-];
+// ---------------------------------------------------------------------------
+// Going deeper
 
+const improper: Skill = {
+  id: 'calc.improper',
+  name: 'Improper integrals',
+  prereqs: ['calc.definite', 'calc.limits'],
+  levels: [
+    {
+      name: 'p-integrals to infinity',
+      generate(r) {
+        const p = r.int(2, 4);
+        const a = r.int(1, 3);
+        const k = r.int(1, 6);
+        const ans = new Q(k, (p - 1) * a ** (p - 1));
+        return {
+          prompt: `Evaluate $${int(`\\frac{${k}}{x^{${p}}}`, a, '\\infty')}$.`,
+          answer: num(ans),
+          solution: [
+            `Replace $\\infty$ by $b$ and take the limit: $\\displaystyle\\lim_{b\\to\\infty}\\left[-\\frac{${k}}{${p - 1}x^{${p - 1}}}\\right]_{${a}}^{b}$.`,
+            `The term at $b$ goes to $0$, leaving $\\dfrac{${k}}{${p - 1}\\cdot ${a}^{${p - 1}}} = ${ans.tex()}$.`,
+          ],
+          // Finite part up to B plus the exact tail k/((p-1)B^(p-1)).
+          selfCheck: () => near(integrate(`${k}/x^${p}`, a, 50, 20000) + k / ((p - 1) * 50 ** (p - 1)), ans.value(), 1e-6),
+        };
+      },
+    },
+    {
+      name: 'exponential tails',
+      generate(r) {
+        const k = r.int(1, 4);
+        if (r.next() < 0.5) {
+          const c = r.int(1, 6);
+          const ans = new Q(c, k);
+          return {
+            prompt: `Evaluate $${int(`${c === 1 ? '' : c}e^{-${k === 1 ? '' : k}x}`, 0, '\\infty')}$.`,
+            answer: num(ans),
+            solution: [`$\\displaystyle\\lim_{b\\to\\infty}\\left[-\\frac{${c}}{${k}}e^{-${k === 1 ? '' : k}x}\\right]_0^{b} = 0 + \\frac{${c}}{${k}} = ${ans.tex()}$`],
+            selfCheck: () => near(integrate(`${c}*exp(-${k}*x)`, 0, 60, 20000), ans.value(), 1e-6),
+          };
+        }
+        const ans = new Q(1, k * k);
+        return {
+          prompt: `Evaluate $${int(`xe^{-${k === 1 ? '' : k}x}`, 0, '\\infty')}$.`,
+          answer: num(ans),
+          solution: [
+            `By parts: $\\int xe^{-${k}x}dx = -\\frac{x}{${k}}e^{-${k}x} - \\frac{1}{${k * k}}e^{-${k}x}$.`,
+            `At $\\infty$ both terms vanish (exponential beats polynomial); at $0$ the value is $-\\frac{1}{${k * k}}$.`,
+            `Result: $${ans.tex()}$`,
+          ],
+          selfCheck: () => near(integrate(`x*exp(-${k}*x)`, 0, 80, 20000), ans.value(), 1e-6),
+        };
+      },
+    },
+    {
+      name: 'converges or diverges?',
+      generate(r) {
+        const k = r.int(1, 5);
+        const p = r.pick([new Q(1, 2), new Q(1), new Q(3, 2), new Q(2), new Q(1, 3)]);
+        const pool: { tex: string; conv: boolean; why: string }[] = [
+          { tex: int(`\\frac{1}{x^{${p.tex()}}}`, 1, '\\infty'), conv: p.value() > 1, why: `Tail $p$-integral: converges iff $p > 1$; here $p = ${p.tex()}$.` },
+          { tex: int(`\\frac{1}{x^{${p.tex()}}}`, 0, 1), conv: p.value() < 1, why: `Singular at $0$: converges iff $p < 1$; here $p = ${p.tex()}$.` },
+          { tex: int(`\\frac{1}{x^{2} + ${k}}`, 0, '\\infty'), conv: true, why: `Behaves like $\\frac{1}{x^2}$ at infinity, which is integrable (the value is $\\frac{\\pi}{2\\sqrt{${k}}}$).` },
+          { tex: int(`\\frac{1}{\\sqrt{x^{2} + ${k}}}`, 1, '\\infty'), conv: false, why: 'Behaves like $\\frac{1}{x}$ at infinity, which is not integrable.' },
+          { tex: int('\\frac{1}{x\\ln x}', 2, '\\infty'), conv: false, why: 'Substitute $u = \\ln x$: $\\int \\frac{du}{u} = \\ln u \\to \\infty$.' },
+          { tex: int('\\frac{\\ln x}{x^{2}}', 1, '\\infty'), conv: true, why: '$\\ln x$ grows slower than any power, so compare with $\\frac{1}{x^{3/2}}$, which converges.' },
+          { tex: int(`e^{-${k === 1 ? '' : k}x}`, 0, '\\infty'), conv: true, why: `Exponential decay: the value is $\\frac{1}{${k}}$.` },
+        ];
+        const c = r.pick(pool);
+        return {
+          prompt: `Does $${c.tex}$ converge or diverge?`,
+          answer: { kind: 'choice', options: ['Converges', 'Diverges'], correct: c.conv ? 0 : 1 },
+          solution: [c.why],
+        };
+      },
+    },
+  ],
+  learn: {
+    summary:
+      'An integral with an infinite limit or a blow-up inside is defined as a limit: $\\int_a^\\infty f = \\lim_{b\\to\\infty}\\int_a^b f$. Benchmarks: $\\int_1^\\infty \\frac{dx}{x^p}$ converges iff $p > 1$, $\\int_0^1 \\frac{dx}{x^p}$ converges iff $p < 1$, and $e^{-kx}$ always decays fast enough. Compare unfamiliar integrands to these.',
+    resources: [
+      paul('CalcII/ImproperIntegrals.aspx', 'Improper Integrals'),
+      paul('CalcII/ImproperIntegralsCompTest.aspx', 'Comparison Test for Improper Integrals'),
+      openstax(2, '3-7-improper-integrals', 'Improper Integrals'),
+    ],
+  },
+};
+
+// ---------------------------------------------------------------------------
+
+export const calculusChapters: Chapter[] = [
+  {
+    id: 'calc.ch.limits',
+    title: 'Limits',
+    about: 'What value a function approaches as $x$ approaches a point or infinity, and how to compute it when plugging in fails.',
+    why: 'Derivatives, integrals and series are all defined as limits. Limits at infinity are also how you compare growth rates, which is exactly Big-O reasoning.',
+    resources: [tb1b('limits', 'Limits, L’Hôpital’s rule, and epsilon delta definitions'), paul('CalcI/LimitsIntro.aspx', 'Limits (chapter intro)'), openstax(1, '2-2-the-limit-of-a-function', 'The Limit of a Function')],
+    skills: [limits],
+    deeper: [],
+  },
+  {
+    id: 'calc.ch.derivatives',
+    title: 'Derivatives',
+    about: 'The derivative as instantaneous rate of change, and the rules that let you differentiate anything built from elementary functions.',
+    why: 'Optimisation, physics, and machine learning (gradient descent and backpropagation are the chain rule applied at scale).',
+    resources: [tb1b('derivatives', 'The paradox of the derivative'), tb1b('chain-rule-and-product-rule', 'Visualizing the chain rule and product rule'), openstax(1, '3-1-defining-the-derivative', 'Defining the Derivative')],
+    skills: [power, product, chain, implicit],
+    deeper: [],
+  },
+  {
+    id: 'calc.ch.applications',
+    title: 'Applications of derivatives',
+    about: 'Using derivatives to find maxima and minima, and to evaluate tricky limits with L’Hôpital’s rule.',
+    why: 'Finding the best value of something is the most common use of calculus in practice.',
+    resources: [paul('CalcI/DerivAppsIntro.aspx', 'Applications of Derivatives (chapter intro)'), openstax(1, '4-3-maxima-and-minima', 'Maxima and Minima')],
+    skills: [extrema, lhopital],
+    deeper: [],
+  },
+  {
+    id: 'calc.ch.integrals',
+    title: 'Integrals',
+    about: 'Antiderivatives, the fundamental theorem of calculus, and the main techniques: substitution, integration by parts, partial fractions.',
+    why: 'Areas, totals and averages; in probability, every expected value and every density is an integral.',
+    resources: [tb1b('integration', 'Integration and the fundamental theorem of calculus'), openstax(1, '5-3-the-fundamental-theorem-of-calculus', 'The Fundamental Theorem of Calculus'), paul('CalcII/IntTechIntro.aspx', 'Integration Techniques (chapter intro)')],
+    skills: [antideriv, definite, usub, parts, pfrac],
+    deeper: [improper],
+  },
+  {
+    id: 'calc.ch.series',
+    title: 'Series',
+    about: 'Infinite sums: when they converge, how to sum them, and how to write functions as power series.',
+    why: 'Taylor series are how computers evaluate $\\sin$, $e^x$ and friends, and they underpin most approximation arguments. Geometric series show up in algorithm analysis.',
+    resources: [tb1b('taylor-series', 'Taylor series'), paul('CalcII/SeriesIntro.aspx', 'Series and Sequences (chapter intro)'), openstax(2, '5-2-infinite-series', 'Infinite Series')],
+    skills: [series, taylor],
+    deeper: [],
+  },
+  {
+    id: 'calc.ch.multivariable',
+    title: 'Multivariable calculus',
+    about: 'Functions of several variables: partial derivatives, gradients, Hessians and double integrals.',
+    why: 'Machine learning lives here: a loss function has thousands of variables and the gradient tells you which way to move.',
+    resources: [paul('CalcIII/PartialDerivsIntro.aspx', 'Partial Derivatives (chapter intro)'), openstax(3, '4-3-partial-derivatives', 'Partial Derivatives'), { kind: 'video', title: 'Khan Academy: Multivariable calculus', url: 'https://www.khanacademy.org/math/multivariable-calculus' }],
+    skills: [partial, double],
+    deeper: [],
+  },
+];

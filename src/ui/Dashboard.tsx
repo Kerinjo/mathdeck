@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
-import { dayKey, status, type Status } from '../core/scheduler';
+import { CHAPTER_OF, chapterNumber, SKILLS, SUBJECT_OF_CHAPTER, SUBJECTS } from '../content';
+import { chapterOfKey, isActive, sessionTitle } from '../core/actions';
+import { dayKey } from '../core/scheduler';
 import { useData } from '../core/store';
-import { ALL_SKILLS, SKILLS, SUBJECTS } from '../content';
-import { todaysQueue, when } from './Review';
+import { Bar, chapterProgress, currentChapter, when } from './common';
+import { dueQueue } from './Review';
 
 interface Props {
   onReview(): void;
-  onSkill(id: string): void;
+  onStudy(key: string): void;
+  onChapter(id: string, focus?: string): void;
 }
 
-export function Dashboard({ onReview, onSkill }: Props) {
+export function Dashboard({ onReview, onStudy, onChapter }: Props) {
   const data = useData();
   // Re-render every 30 s so retries that come due show up without a reload.
   const [, tick] = useState(0);
@@ -18,133 +21,128 @@ export function Dashboard({ onReview, onSkill }: Props) {
     return () => clearInterval(id);
   }, []);
   const now = Date.now();
-  const { due, fresh } = todaysQueue(now);
+  const due = dueQueue(now);
   const stats = useStats();
 
-  const nextDue = Object.values(data.states)
-    .map((s) => s.due)
+  const nextDue = Object.entries(data.states)
+    .filter(([id]) => isActive(id, data))
+    .map(([, s]) => s.due)
     .filter((d) => d > now)
     .sort((a, b) => a - b)[0];
-  const weak = ALL_SKILLS.filter((k) => (data.states[k.id]?.missStreak ?? 0) >= 2);
+  const weak = Object.keys(data.states).filter((id) => data.states[id].missStreak >= 2 && isActive(id, data));
+
+  // Continue: the most recent unfinished session, else the current chapter of your most recent subject.
+  const saved = Object.values(data.sessions).sort((a, b) => b.updatedAt - a.updatedAt)[0];
+  const lastSkill = data.log[data.log.length - 1]?.skill;
+  const subject = lastSkill && SKILLS[lastSkill] ? SUBJECT_OF_CHAPTER[CHAPTER_OF[lastSkill].id] : SUBJECTS[0];
+  const next = currentChapter(subject, data.states);
+
+  const mainIds = SUBJECTS.flatMap((s) => s.chapters.flatMap((c) => c.skills.map((k) => k.id)));
 
   return (
     <div className="dashboard">
-      <section className="hero">
-        {due.length + fresh.length > 0 ? (
-          <>
-            <div>
+      <section className="hero-grid">
+        <div className="hero">
+          <div className="hero-label">Review</div>
+          {due.length > 0 ? (
+            <>
               <div className="hero-count">
-                <b>{due.length}</b> due <span className="dot">·</span> <b>{fresh.length}</b> new
+                <b>{due.length}</b> due
               </div>
-              <div className="muted">Solve on paper, type the final answer.</div>
-            </div>
-            <button className="primary big" onClick={onReview}>
-              Start review <kbd>⏎</kbd>
-            </button>
-          </>
-        ) : (
-          <div>
-            <div className="hero-count">All caught up</div>
-            <div className="muted">
-              {nextDue ? `Next review ${when(nextDue - now)}.` : 'Nothing scheduled.'} You can practice any skill from the
-              Skills page.
-            </div>
-          </div>
-        )}
+              <div className="muted small">Mixed from every chapter, weakest first.</div>
+              <button className="primary big" onClick={onReview}>
+                Start review
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="hero-count">All caught up</div>
+              <div className="muted small">{nextDue ? `Next review ${when(nextDue - now)}.` : 'Study a chapter to fill your reviews.'}</div>
+            </>
+          )}
+        </div>
+        <div className="hero">
+          <div className="hero-label">Study</div>
+          {saved ? (
+            <>
+              <div className="hero-count">{sessionTitle(saved.key)}</div>
+              <div className="muted small">
+                Paused at {saved.answered} / {saved.target} · {SUBJECT_OF_CHAPTER[chapterOfKey(saved.key).id].name}
+              </div>
+              <button className="primary big" onClick={() => onStudy(saved.key)}>
+                Resume
+              </button>
+            </>
+          ) : next ? (
+            <>
+              <div className="hero-count">
+                {chapterNumber(next)}. {next.title}
+              </div>
+              <div className="muted small">
+                {subject.name} · {chapterProgress(next, data.states).cleared} / {next.skills.length} sections cleared
+              </div>
+              <button className="primary big" onClick={() => onStudy(`chapter:${next.id}`)}>
+                {chapterProgress(next, data.states).cleared === 0 && !next.skills.some((s) => data.states[s.id]) ? 'Start' : 'Continue'}
+              </button>
+            </>
+          ) : (
+            <div className="hero-count">{subject.name} done!</div>
+          )}
+        </div>
       </section>
 
       <section className="tiles">
-        <Tile label="Reviews today" value={stats.today} />
+        <Tile label="Answers today" value={stats.today} />
         <Tile label="Accuracy, 30 days" value={stats.acc30 === null ? '–' : `${Math.round(stats.acc30 * 100)}%`} />
         <Tile label="Day streak" value={stats.streak} />
-        <Tile
-          label="Skills reliable"
-          value={`${ALL_SKILLS.filter((k) => ['reliable', 'mastered'].includes(status(k, data.states))).length} / ${ALL_SKILLS.length}`}
-        />
+        <Tile label="Sections cleared" value={`${mainIds.filter((id) => data.states[id]?.cleared).length} / ${mainIds.length}`} />
       </section>
 
       <Heatmap counts={stats.perDay} />
 
       {weak.length > 0 && (
         <section>
-          <h3>Weak skills</h3>
-          <p className="muted small">Missed several times in a row. Open one to read the summary and links.</p>
+          <h3>Struggling with</h3>
+          <p className="muted small">Missed several times in a row. They come up more often until they stick.</p>
           <div className="chips">
-            {weak.map((k) => (
-              <button key={k.id} className="chip status-weak" onClick={() => onSkill(k.id)}>
-                {k.name}
+            {weak.map((id) => (
+              <button key={id} className="chip status-weak" onClick={() => onChapter(CHAPTER_OF[id].id, id)}>
+                {SKILLS[id].name}
               </button>
             ))}
           </div>
         </section>
       )}
 
-      {SUBJECTS.map((subj) => (
-        <section key={subj.id} className="skill-map">
-          <h3>{subj.name}</h3>
-          {[...new Set(subj.skills.map((k) => k.topic))].map((topic) => (
-            <div key={topic} className="topic-row">
-              <div className="topic-name">{topic}</div>
-              <div className="chips">
-                {subj.skills
-                  .filter((k) => k.topic === topic)
-                  .map((k) => {
-                    const st = status(k, data.states);
-                    const s = data.states[k.id];
-                    return (
-                      <button
-                        key={k.id}
-                        className={`chip status-${st}`}
-                        onClick={() => onSkill(k.id)}
-                        title={st === 'locked' ? `Needs: ${k.prereqs.map((p) => SKILLS[p].name).join(', ')}` : STATUS_LABEL[st]}
-                      >
-                        {k.name}
-                        <Pips total={k.levels.length} level={s ? (s.mastered ? k.levels.length : s.level) : 0} />
-                      </button>
-                    );
-                  })}
-              </div>
+      {SUBJECTS.map((subj) => {
+        const cur = currentChapter(subj, data.states);
+        return (
+          <section key={subj.id}>
+            <h3>{subj.name}</h3>
+            <div className="chapter-list compact">
+              {subj.chapters.map((c) => {
+                const p = chapterProgress(c, data.states);
+                return (
+                  <button key={c.id} className={`chapter-row ${c === cur ? 'current' : ''}`} onClick={() => onChapter(c.id)}>
+                    <span className="ch-num">{chapterNumber(c)}</span>
+                    <span className="ch-title">
+                      {c.title} {data.sessions[`chapter:${c.id}`] && <span className="badge">paused</span>}
+                    </span>
+                    <span className="muted small ch-count">
+                      {p.cleared}/{p.total}
+                    </span>
+                    <Bar value={p.value} />
+                  </button>
+                );
+              })}
             </div>
-          ))}
-        </section>
-      ))}
-      <Legend />
+          </section>
+        );
+      })}
     </div>
   );
 }
 
-export const STATUS_LABEL: Record<Status, string> = {
-  locked: 'Locked',
-  available: 'Ready to start',
-  learning: 'Learning',
-  reliable: 'Reliable',
-  mastered: 'Mastered',
-};
-
-function Legend() {
-  return (
-    <div className="legend">
-      {(Object.keys(STATUS_LABEL) as Status[]).map((s) => (
-        <span key={s}>
-          <i className={`swatch status-${s}`} /> {STATUS_LABEL[s]}
-        </span>
-      ))}
-      <span>
-        <Pips total={3} level={1} /> levels done
-      </span>
-    </div>
-  );
-}
-
-export function Pips({ total, level }: { total: number; level: number }) {
-  return (
-    <span className="pips" aria-label={`${level} of ${total} levels`}>
-      {Array.from({ length: total }, (_, i) => (
-        <i key={i} className={i < level ? 'on' : ''} />
-      ))}
-    </span>
-  );
-}
 
 function Tile({ label, value }: { label: string; value: string | number }) {
   return (
@@ -194,7 +192,7 @@ function Heatmap({ counts }: { counts: Map<string, number> }) {
     <section className="heatmap-wrap">
       <div className="heatmap">
         {days.map((d) => (
-          <i key={d.key} className={`hm l${d.future ? 'x' : level(d.n)}`} title={`${d.key}: ${d.n} reviews`} />
+          <i key={d.key} className={`hm l${d.future ? 'x' : level(d.n)}`} title={`${d.key}: ${d.n} answers`} />
         ))}
       </div>
     </section>

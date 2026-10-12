@@ -2,16 +2,19 @@ import type { Skill } from './types';
 
 /**
  * Scheduling model (per skill, not per card):
- * - correct -> interval grows (1d, 3d, 8d, 20d, ...), a fresh instance each time
- * - wrong   -> back in this session after a few cards, then tomorrow
- * - 3 correct in a row on separate days at a level = "reliable" -> unlock next level
+ * - correct -> interval grows by the skill's ease (1d, 3d, ~6d, ~15d, ...), a fresh problem each time
+ * - wrong   -> due again in minutes, and the skill's ease drops so it grows more slowly from now on
+ * - easy skills (always right) gain ease and fade out faster
+ * - 3 correct in a row (any days) = section "cleared": the first pass is done
+ * - 3 correct in a row on separate days at a level -> next level unlocks
  * - a miss right after levelling up drops the next problem back one level
  */
 
 export const STREAK_TO_LEVEL_UP = 3;
+export const CLEAR_RUN = 3;
 const RETRY_DELAY = 10 * 60 * 1000;
-const GROWTH = 2.6;
 const MAX_INTERVAL = 180;
+export const EASE = { start: 2.5, min: 1.3, max: 3.2, up: 0.1, down: 0.25 };
 
 export interface SkillState {
   /** Level currently being trained (0-based). */
@@ -22,6 +25,12 @@ export interface SkillState {
   /** Current interval in days; 0 = still learning. */
   interval: number;
   due: number;
+  /** Interval multiplier, learned from your history with this skill. */
+  ease: number;
+  /** Consecutive correct answers, regardless of day. */
+  run: number;
+  /** First pass done: CLEAR_RUN correct in a row at some point. */
+  cleared: boolean;
   /** All levels done reliably. */
   mastered: boolean;
   /** Next problem is served one level lower to rebuild. */
@@ -61,6 +70,9 @@ export function newState(now: number): SkillState {
     lastCorrectDay: null,
     interval: 0,
     due: now,
+    ease: EASE.start,
+    run: 0,
+    cleared: false,
     mastered: false,
     stepDown: false,
     missStreak: 0,
@@ -70,8 +82,18 @@ export function newState(now: number): SkillState {
   };
 }
 
+/** Fill in fields added after a state was saved (older backups). */
+export function upgradeState(s: Partial<SkillState>, now: number): SkillState {
+  const base = newState(s.introducedAt ?? now);
+  const out = { ...base, ...s } as SkillState;
+  if (s.cleared === undefined) out.cleared = (s.level ?? 0) > 0 || !!s.mastered;
+  return out;
+}
+
 /** Which level to generate the next problem at. */
 export const servedLevel = (s: SkillState) => (s.stepDown && s.level > 0 ? s.level - 1 : s.level);
+
+const clamp = (x: number) => Math.min(EASE.max, Math.max(EASE.min, x));
 
 export function review(s: SkillState, skill: Skill, ok: boolean, now: number): SkillState {
   const n: SkillState = { ...s, attempts: s.attempts + 1 };
@@ -80,8 +102,10 @@ export function review(s: SkillState, skill: Skill, ok: boolean, now: number): S
 
   if (!ok) {
     n.missStreak = s.missStreak + 1;
+    n.run = 0;
     n.streak = 0;
     n.interval = 0;
+    n.ease = clamp(s.ease - EASE.down);
     n.due = now + RETRY_DELAY;
     // A miss on a level you haven't landed yet: rebuild one level down first.
     if (!s.stepDown && s.level > 0 && s.streak === 0 && !s.mastered) n.stepDown = true;
@@ -90,6 +114,8 @@ export function review(s: SkillState, skill: Skill, ok: boolean, now: number): S
 
   n.correct = s.correct + 1;
   n.missStreak = 0;
+  n.run = s.run + 1;
+  if (n.run >= CLEAR_RUN) n.cleared = true;
 
   if (s.stepDown) {
     // Rebuilt the lower level; try the real level again soon.
@@ -103,11 +129,14 @@ export function review(s: SkillState, skill: Skill, ok: boolean, now: number): S
   n.lastCorrectDay = today;
 
   if (!newDay) {
-    // Second correct answer the same day (after an in-session retry): see it tomorrow.
+    // Another correct answer the same day: see it tomorrow, no extra credit toward spacing.
     n.interval = Math.max(s.interval, 1);
-    n.due = daysFrom(now, 1);
+    n.due = Math.max(s.due, daysFrom(now, 1));
     return n;
   }
+
+  // Only a correct answer on a new day says something about retention.
+  if (s.attempts > 0) n.ease = clamp(s.ease + EASE.up);
 
   if (n.streak >= STREAK_TO_LEVEL_UP && n.level < maxLevel && !s.mastered) {
     n.level += 1;
@@ -118,41 +147,47 @@ export function review(s: SkillState, skill: Skill, ok: boolean, now: number): S
   }
   if (n.streak >= STREAK_TO_LEVEL_UP && n.level === maxLevel) n.mastered = true;
 
-  n.interval = s.interval === 0 ? 1 : Math.min(MAX_INTERVAL, Math.max(s.interval + 1, s.interval * GROWTH));
+  n.interval = s.interval === 0 ? 1 : Math.min(MAX_INTERVAL, Math.max(s.interval + 1, s.interval * n.ease));
   n.due = daysFrom(now, n.interval);
   return n;
 }
 
-/** A skill counts as a solid prerequisite once its first level is reliable. */
-export const isReliable = (s: SkillState | undefined) => !!s && (s.level > 0 || s.mastered);
+export type Status = 'new' | 'learning' | 'cleared' | 'mastered';
 
-export type Status = 'locked' | 'available' | 'learning' | 'reliable' | 'mastered';
-
-export function status(skill: Skill, states: Record<string, SkillState>): Status {
-  const s = states[skill.id];
-  if (s?.mastered) return 'mastered';
-  if (isReliable(s)) return 'reliable';
-  if (s) return 'learning';
-  return skill.prereqs.every((p) => isReliable(states[p])) ? 'available' : 'locked';
+export function status(s: SkillState | undefined): Status {
+  if (!s) return 'new';
+  if (s.mastered) return 'mastered';
+  if (s.cleared) return 'cleared';
+  return 'learning';
 }
 
-/** Skills due now (oldest first), then up to `newLimit` unlocked new skills in curriculum order. */
-export function buildQueue(
-  skills: Skill[],
+/** Levels finished, for progress pips. */
+export const levelsDone = (s: SkillState | undefined, total: number) => (!s ? 0 : s.mastered ? total : s.level);
+
+/**
+ * Mixed review: everything due, weakest first, capped, then reordered so consecutive
+ * problems come from different chapters where possible.
+ */
+export function reviewQueue(
+  skillIds: string[],
+  chapterOf: (id: string) => string,
   states: Record<string, SkillState>,
   now: number,
-  newLimit: number,
-): { due: string[]; fresh: string[] } {
-  const due = skills
-    .filter((k) => states[k.id] && states[k.id].due <= now)
-    .sort((a, b) => states[a.id].due - states[b.id].due)
-    .map((k) => k.id);
-  const fresh = skills
-    .filter((k) => status(k, states) === 'available')
-    .slice(0, Math.max(0, newLimit))
-    .map((k) => k.id);
-  return { due, fresh };
+  cap: number,
+): string[] {
+  const due = skillIds
+    .filter((id) => states[id] && states[id].due <= now)
+    .sort((a, b) => {
+      const sa = states[a];
+      const sb = states[b];
+      return sb.missStreak - sa.missStreak || sa.ease - sb.ease || sa.due - sb.due;
+    })
+    .slice(0, cap);
+  const out: string[] = [];
+  while (due.length) {
+    const prev = out.length ? chapterOf(out[out.length - 1]) : null;
+    const i = Math.max(0, due.findIndex((id) => chapterOf(id) !== prev));
+    out.push(due.splice(i, 1)[0]);
+  }
+  return out;
 }
-
-export const newIntroducedToday = (states: Record<string, SkillState>, now: number) =>
-  Object.values(states).filter((s) => dayKey(s.introducedAt) === dayKey(now)).length;
