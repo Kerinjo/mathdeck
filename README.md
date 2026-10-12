@@ -1,5 +1,7 @@
 # mathdeck
 
+**Live: https://kerinjo.github.io/mathdeck/** (redeployed automatically on every push to `master`).
+
 Spaced repetition for maths, with exercises instead of flashcards. Every review generates a fresh problem.
 You solve it on paper, type the final answer, and the app grades it.
 
