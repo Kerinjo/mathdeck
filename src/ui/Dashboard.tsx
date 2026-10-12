@@ -3,16 +3,18 @@ import { CHAPTER_OF, chapterNumber, SKILLS, SUBJECT_OF_CHAPTER, SUBJECTS } from 
 import { chapterOfKey, isActive, sessionTitle } from '../core/actions';
 import { dayKey } from '../core/scheduler';
 import { useData } from '../core/store';
-import { Bar, chapterProgress, currentChapter, when } from './common';
+import { chapterProgress, currentChapter, when } from './common';
+import { SubjectMap } from './SubjectMap';
+import type { Focus } from './Subjects';
 import { dueQueue } from './Review';
 
 interface Props {
   onReview(): void;
   onStudy(key: string): void;
-  onChapter(id: string, focus?: string): void;
+  onSubjects(focus?: Focus): void;
 }
 
-export function Dashboard({ onReview, onStudy, onChapter }: Props) {
+export function Dashboard({ onReview, onStudy, onSubjects }: Props) {
   const data = useData();
   // Re-render every 30 s so retries that come due show up without a reload.
   const [, tick] = useState(0);
@@ -106,7 +108,7 @@ export function Dashboard({ onReview, onStudy, onChapter }: Props) {
           <p className="muted small">Missed several times in a row. They come up more often until they stick.</p>
           <div className="chips">
             {weak.map((id) => (
-              <button key={id} className="chip status-weak" onClick={() => onChapter(CHAPTER_OF[id].id, id)}>
+              <button key={id} className="chip status-weak" onClick={() => onSubjects({ section: id })}>
                 {SKILLS[id].name}
               </button>
             ))}
@@ -114,31 +116,10 @@ export function Dashboard({ onReview, onStudy, onChapter }: Props) {
         </section>
       )}
 
-      {SUBJECTS.map((subj) => {
-        const cur = currentChapter(subj, data.states);
-        return (
-          <section key={subj.id}>
-            <h3>{subj.name}</h3>
-            <div className="chapter-list compact">
-              {subj.chapters.map((c) => {
-                const p = chapterProgress(c, data.states);
-                return (
-                  <button key={c.id} className={`chapter-row ${c === cur ? 'current' : ''}`} onClick={() => onChapter(c.id)}>
-                    <span className="ch-num">{chapterNumber(c)}</span>
-                    <span className="ch-title">
-                      {c.title} {data.sessions[`chapter:${c.id}`] && <span className="badge">paused</span>}
-                    </span>
-                    <span className="muted small ch-count">
-                      {p.cleared}/{p.total}
-                    </span>
-                    <Bar value={p.value} />
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        );
-      })}
+      <section>
+        <h3>Subjects</h3>
+        <SubjectMap onPick={(id) => onSubjects({ subject: id })} />
+      </section>
     </div>
   );
 }

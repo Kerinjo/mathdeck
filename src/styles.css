@@ -1031,3 +1031,210 @@ h1 {
   margin: 0 0 0.6rem;
   line-height: 1.75;
 }
+
+/* ---- subject map ---- */
+
+.subject-map {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  overflow-x: auto;
+}
+.subject-map svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+.map-edge {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.5;
+  opacity: 0.7;
+}
+.map-arrowhead {
+  fill: var(--muted);
+}
+.map-node {
+  cursor: pointer;
+}
+.map-node > rect:first-child {
+  fill: var(--surface-2);
+  stroke: var(--border);
+  stroke-width: 1;
+  transition: stroke 0.15s;
+}
+.map-node:hover > rect:first-child,
+.map-node:focus-visible > rect:first-child,
+.map-node.selected > rect:first-child {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+.map-node:focus {
+  outline: none;
+}
+.map-title {
+  fill: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+.map-track {
+  fill: var(--bg);
+}
+.map-fill {
+  fill: var(--s-cleared);
+}
+.map-pct {
+  fill: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- outline ---- */
+
+.outline {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+.ol-subject {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.ol-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.8rem;
+  cursor: pointer;
+  min-height: 2.6rem;
+}
+.ol-row:hover {
+  background: var(--surface-2);
+}
+.ol-row .pbar {
+  flex: 0 0 6rem;
+  min-width: 0;
+}
+.ol-name {
+  font-weight: 550;
+}
+.ol-subject-row {
+  padding: 0.8rem;
+}
+.ol-subject-row .ol-name {
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+.ol-blurb {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ol-pct {
+  width: 2.5rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ol-chapter {
+  border-top: 1px solid var(--border);
+}
+.ol-chapter-row {
+  padding-left: 1.6rem;
+}
+.ol-chapter.current > .ol-chapter-row {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.ol-count {
+  font-variant-numeric: tabular-nums;
+  min-width: 2rem;
+  text-align: right;
+}
+.info {
+  background: none;
+  border: 0;
+  color: var(--muted);
+  padding: 0 0.25rem;
+  font-size: 0.95rem;
+  margin-right: auto;
+}
+.info:hover,
+.info.active {
+  color: var(--accent);
+}
+.ol-about {
+  padding: 0.25rem 1rem 0.75rem 3.2rem;
+  font-size: 0.92rem;
+}
+.ol-about p {
+  margin: 0.4rem 0;
+}
+.ol-sections {
+  padding-bottom: 0.4rem;
+}
+.ol-section-row {
+  padding-left: 3.2rem;
+  min-height: 2.3rem;
+}
+.ol-section-row .ol-name {
+  flex: 1;
+  font-weight: 450;
+}
+.ol-section .swatch {
+  background: var(--chip);
+}
+.ol-section.open .ol-section-row {
+  background: var(--surface-2);
+}
+.ol-section-body {
+  padding: 0.75rem 1rem 1rem 3.2rem;
+  display: grid;
+  gap: 0.8rem;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+.ol-section-body .level {
+  background: var(--surface);
+}
+.ol-deeper-label {
+  padding: 0.6rem 0.8rem 0.3rem 3.2rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.ol-deeper-label .muted {
+  text-transform: none;
+  letter-spacing: 0;
+}
+.study-btn {
+  min-width: 4.8rem;
+}
+.study-btn.resume {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+@media (max-width: 640px) {
+  .ol-blurb,
+  .ol-row .pbar,
+  .ol-section-row .status-text,
+  .ol-section-row .pips {
+    display: none;
+  }
+  .ol-subject-row .ol-name {
+    flex: 1;
+  }
+  .ol-chapter-row {
+    padding-left: 1rem;
+  }
+  .ol-section-row,
+  .ol-about,
+  .ol-section-body,
+  .ol-deeper-label {
+    padding-left: 1.6rem;
+  }
+}

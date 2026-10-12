@@ -45,6 +45,11 @@ export function chapterProgress(ch: Chapter, states: Record<string, SkillState>)
   };
 }
 
+export function subjectProgress(subject: Subject, states: Record<string, SkillState>) {
+  const ids = subject.chapters.flatMap((c) => c.skills.map((s) => s.id));
+  return ids.length ? ids.reduce((a, id) => a + sectionProgress(id, states[id]), 0) / ids.length : 0;
+}
+
 /** The first chapter (in book order) with a main section not yet cleared. */
 export function currentChapter(subject: Subject, states: Record<string, SkillState>): Chapter | null {
   return subject.chapters.find((c) => c.skills.some((s) => !states[s.id]?.cleared)) ?? null;

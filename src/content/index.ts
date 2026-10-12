@@ -3,9 +3,11 @@ import { calculusChapters } from './calculus';
 import { linalgChapters } from './linalg';
 
 export const SUBJECTS: Subject[] = [
-  { id: 'calculus', name: 'Calculus', chapters: calculusChapters },
-  { id: 'linalg', name: 'Linear Algebra', chapters: linalgChapters },
+  { id: 'calculus', name: 'Calculus', blurb: 'Limits, derivatives, integrals, series', requires: [], chapters: calculusChapters },
+  { id: 'linalg', name: 'Linear Algebra', blurb: 'Vectors, matrices, eigenvalues', requires: [], chapters: linalgChapters },
 ];
+
+export const SUBJECT_BY_ID = Object.fromEntries(SUBJECTS.map((s) => [s.id, s])) as Record<string, Subject>;
 
 export const CHAPTERS: Chapter[] = SUBJECTS.flatMap((s) => s.chapters);
 

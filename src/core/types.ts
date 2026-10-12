@@ -76,10 +76,14 @@ export interface Chapter {
   deeper: Skill[];
 }
 
-export type SubjectId = 'calculus' | 'linalg';
+export type SubjectId = 'calculus' | 'linalg' | 'logic' | 'proofs' | 'discrete' | 'graphs' | 'numtheory';
 
 export interface Subject {
   id: SubjectId;
   name: string;
+  /** One line for the subject map. */
+  blurb: string;
+  /** Subjects this one builds on (arrows on the subject map). */
+  requires: SubjectId[];
   chapters: Chapter[];
 }

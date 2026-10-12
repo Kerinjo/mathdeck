@@ -39,6 +39,9 @@ Everything else:
   multiplies the interval by the ease (less for Hard, more for Easy). "Didn't know how" brings it back within minutes
   and lowers the ease, so it grows more slowly afterwards. 3 solved on separate days unlocks the next level. Losing it
   right after a level-up drops you back one level to rebuild.
+- **Subjects page**: a map of how the subjects build on each other, and below it an outline of every subject,
+  chapter and section, each with its progress and a Study button. Expand a section for its levels, practice and
+  intro; ⓘ on a chapter shows its optional "About".
 - **Nothing is locked.** Open any chapter at any time. "I already know this" (for a section or a whole chapter)
   marks it cleared, and it gets checked at its top level in a review 3 days later.
 - **Learning material is optional.** Every chapter has an *About this chapter* panel (what it covers, why it matters,
